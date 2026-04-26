@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 포트폴리오 생성기</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#6366F1;--pd:#4338CA;--pl:#EEF2FF;
+  --ok:#10B981;--err:#EF4444;
+  --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;
+  --g400:#9CA3AF;--g500:#6B7280;--g700:#374151;--g900:#111827;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh}
+
+/* ── Header ── */
+header{background:#fff;border-bottom:1px solid var(--g200);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.logo{width:34px;height:34px;background:var(--p);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0}
+.hd h1{font-size:17px;font-weight:700}
+.hd p{font-size:12px;color:var(--g500)}
+
+/* ── Progress ── */
+#prog-bar{background:#fff;border-bottom:1px solid var(--g200);padding:14px 24px}
+.steps{display:flex;align-items:center;max-width:720px;margin:0 auto}
+.si{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;position:relative}
+.si:not(:last-child)::after{content:'';position:absolute;top:15px;left:50%;width:100%;height:2px;background:var(--g200);z-index:0;transition:background .4s}
+.si.done:not(:last-child)::after,.si.active:not(:last-child)::after{background:var(--p)}
+.sc{width:30px;height:30px;border-radius:50%;border:2px solid var(--g300);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--g500);z-index:1;position:relative;transition:all .3s}
+.si.active .sc{border-color:var(--p);color:var(--p);background:var(--pl)}
+.si.done .sc{border-color:var(--p);background:var(--p);color:#fff}
+.sl{font-size:10px;color:var(--g500);text-align:center;font-weight:500;white-space:nowrap}
+.si.active .sl{color:var(--p);font-weight:700}
+.si.done .sl{color:var(--p)}
+
+/* ── Main ── */
+main{max-width:780px;margin:28px auto;padding:0 18px}
+
+/* ── Step card ── */
+.scard{background:#fff;border-radius:16px;border:1px solid var(--g200);overflow:hidden;margin-bottom:14px;animation:slideIn .35s ease}
+.scard.hidden{display:none}
+@keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.sh{padding:18px 22px;display:flex;align-items:center;gap:12px}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.sh h2{font-size:15px;font-weight:700}
+.sh p{font-size:12px;color:var(--g500);margin-top:2px}
+.sb{padding:0 22px 22px}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:3px;background:var(--g100);border-radius:9px;padding:3px;margin-bottom:18px}
+.tab{flex:1;padding:7px 14px;border:none;background:none;border-radius:7px;font-size:13px;font-weight:500;color:var(--g500);cursor:pointer;transition:all .2s}
+.tab.active{background:#fff;color:var(--g900);box-shadow:0 1px 3px rgba(0,0,0,.09)}
+.tc{display:none}.tc.active{display:block}
+
+/* ── Upload zone ── */
+.uzone{border:2px dashed var(--g300);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.uzone:hover,.uzone.drag-over{border-color:var(--p);background:var(--pl)}
+.uzone .icon{font-size:34px;margin-bottom:10px}
+.uzone h3{font-size:14px;font-weight:600;margin-bottom:5px}
+.uzone p{font-size:12px;color:var(--g500)}
+.uzone input[type="file"]{display:none}
+.flist{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:12px}
+.fchip{background:var(--pl);color:var(--p);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px}
+.fchip button{background:none;border:none;cursor:pointer;color:var(--p);font-size:15px;line-height:1;padding:0}
+
+/* ── Input ── */
+.ig{margin-bottom:14px}
+.ig label{display:block;font-size:12px;font-weight:700;color:var(--g700);margin-bottom:5px}
+input[type="text"],input[type="url"],textarea{width:100%;padding:9px 13px;border:1px solid var(--g300);border-radius:8px;font-size:13px;color:var(--g900);background:#fff;outline:none;font-family:inherit;transition:border .2s}
+input[type="text"]:focus,input[type="url"]:focus,textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+textarea{resize:vertical;min-height:90px}
+
+/* ── Buttons ── */
+.btn{padding:9px 18px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-p{background:var(--p);color:#fff}.btn-p:not(:disabled):hover{background:var(--pd)}
+.btn-s{background:var(--g100);color:var(--g700)}.btn-s:hover{background:var(--g200)}
+.btn-o{background:#fff;color:var(--p);border:1.5px solid var(--p)}.btn-o:hover{background:var(--pl)}
+.btn-sm{padding:7px 13px;font-size:12px}
+
+/* ── Preview card ── */
+.pcard{background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:14px;margin-bottom:14px}
+.pcard h4{font-size:12px;font-weight:700;color:var(--g700);margin-bottom:8px}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{background:var(--pl);color:var(--p);border-radius:5px;padding:2px 9px;font-size:11px;font-weight:500}
+
+/* ── Retro ── */
+.rtabs{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
+.rtab{padding:7px 16px;border:1.5px solid var(--g300);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--g700)}
+.rtab.active{border-color:var(--p);background:var(--pl);color:var(--p)}
+.rform{display:none}.rform.active{display:block}
+
+/* ── Chat ── */
+.chat-wrap{border:1px solid var(--g200);border-radius:12px;overflow:hidden}
+.chat-msgs{min-height:180px;max-height:380px;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;background:var(--g50);scroll-behavior:smooth}
+.cmsg{max-width:82%}
+.cmsg.ai{align-self:flex-start}.cmsg.user{align-self:flex-end}
+.clabel{font-size:10px;color:var(--g400);margin-bottom:3px;font-weight:700}
+.cbubble{padding:11px 15px;border-radius:12px;font-size:13px;line-height:1.6}
+.cmsg.ai .cbubble{background:#fff;border:1px solid var(--g200);border-radius:4px 12px 12px 12px;color:var(--g900)}
+.cmsg.user .cbubble{background:var(--p);color:#fff;border-radius:12px 12px 4px 12px}
+.typing{display:inline-flex;gap:4px;padding:11px 15px;background:#fff;border:1px solid var(--g200);border-radius:4px 12px 12px 12px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--g400);animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+.chat-in{padding:14px;background:#fff;border-top:1px solid var(--g200);display:flex;gap:8px}
+.chat-in textarea{flex:1;min-height:56px;max-height:110px;resize:none;margin:0}
+.qbadge{font-size:11px;color:var(--g500);background:var(--g100);padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px}
+
+/* ── Portfolio type grid ── */
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.tcard{border:2px solid var(--g200);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;text-align:left;background:#fff}
+.tcard:hover{border-color:var(--p);background:var(--pl)}
+.tcard.sel{border-color:var(--p);background:var(--pl)}
+.ticon{font-size:26px;margin-bottom:9px}
+.tcard h3{font-size:14px;font-weight:700;margin-bottom:3px}
+.tcard p{font-size:11px;color:var(--g500)}
+
+/* ── Job posting tabs ── */
+.jtabs{display:flex;gap:3px;background:var(--g100);border-radius:8px;padding:3px;margin-bottom:14px}
+.jtab{flex:1;padding:7px;border:none;background:none;border-radius:6px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .2s}
+.jtab.active{background:#fff;color:var(--g900);box-shadow:0 1px 2px rgba(0,0,0,.07)}
+
+/* ── Loading overlay ── */
+#gen-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+#gen-overlay.show{display:flex}
+.gen-box{background:#fff;border-radius:20px;padding:40px 48px;text-align:center;max-width:340px}
+.gen-box .big-spin{width:52px;height:52px;border:4px solid var(--g200);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 18px}
+.gen-box h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.gen-box p{font-size:13px;color:var(--g500);line-height:1.6}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--g900);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;max-width:280px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.err{background:var(--err)}
+.toast.ok{background:var(--ok)}
+
+/* ── Spinner inline ── */
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+
+/* ── Result ── */
+#result-page{display:none}
+#result-page.vis{display:block}
+.rh{background:#fff;border-bottom:1px solid var(--g200);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.rh h2{font-size:17px;font-weight:700}
+.rh p{font-size:12px;color:var(--g500);margin-top:2px}
+.ract{display:flex;gap:7px;flex-wrap:wrap}
+.pw{max-width:780px;margin:28px auto;padding:0 18px 60px}
+.pbox{background:#fff;border-radius:16px;border:1px solid var(--g200);padding:40px}
+
+/* ── Portfolio content rendered by AI ── */
+.pbox .portfolio-content .section{margin-bottom:30px}
+.pbox .portfolio-content .section:last-child{margin-bottom:0}
+.pbox .portfolio-content .section-title{font-size:17px;font-weight:800;color:var(--g900);padding-bottom:9px;border-bottom:2.5px solid var(--p);margin-bottom:14px}
+.pbox .portfolio-content .item{background:var(--g50);border-radius:10px;padding:15px;margin-bottom:9px;border:1px solid var(--g200)}
+.pbox .portfolio-content h3{font-size:14px;font-weight:700;margin-bottom:6px}
+.pbox .portfolio-content p{font-size:13px;line-height:1.75;color:var(--g700)}
+.pbox .portfolio-content ul{padding-left:18px;margin-top:6px}
+.pbox .portfolio-content ul li{font-size:13px;line-height:1.8;color:var(--g700)}
+.pbox .portfolio-content .kw{color:var(--p);font-weight:700;background:var(--pl);padding:1px 4px;border-radius:3px}
+.pbox .portfolio-content .tech-tag{display:inline-block;background:var(--g100);color:var(--g700);border-radius:4px;padding:2px 8px;font-size:11px;margin:2px;font-weight:600}
+
+/* ── Success banner ── */
+.ok-banner{background:#ECFDF5;border:1px solid #6EE7B7;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;font-weight:600;color:#065F46}
+
+@media print{
+  header,#prog-bar,.scard,.rh{display:none!important}
+  .pw{margin:0;padding:0;max-width:100%}
+  .pbox{border:none;border-radius:0;box-shadow:none}
+}
+@media(max-width:560px){
+  .tgrid{grid-template-columns:1fr}
+  main,.pw{padding:0 12px}
+  .pbox{padding:22px}
+  .rh{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">P</div>
+  <div class="hd">
+    <h1>AI 포트폴리오 생성기</h1>
+    <p>채용공고 맞춤형 포트폴리오를 AI가 자동으로 생성합니다</p>
+  </div>
+</header>
+
+<div id="prog-bar">
+  <div class="steps">
+    <div class="si active" id="p1"><div class="sc">1</div><div class="sl">재료 업로드</div></div>
+    <div class="si" id="p2"><div class="sc">2</div><div class="sl">회고&amp;인터뷰</div></div>
+    <div class="si" id="p3"><div class="sc">3</div><div class="sl">양식 선택</div></div>
+    <div class="si" id="p4"><div class="sc">4</div><div class="sl">채용공고 맵핑</div></div>
+  </div>
+</div>
+
+<main id="main">
+
+  <!-- ── STEP 1 ── -->
+  <div class="scard" id="s1">
+    <div class="sh"><div class="sn">1</div><div><h2>재료 업로드</h2><p>포트폴리오 파일(PPT/PDF)을 업로드하거나 노션 링크를 입력하세요</p></div></div>
+    <div class="sb">
+      <div class="tabs">
+        <button class="tab active" onclick="uTab('file',this)">📁 파일 업로드</button>
+        <button class="tab" onclick="uTab('notion',this)">🔗 노션 링크</button>
+      </div>
+
+      <!-- File tab -->
+      <div class="tc active" id="tc-file">
+        <div class="uzone" id="dzone" onclick="document.getElementById('fi').click()">
+          <div class="icon">📂</div>
+          <h3>클릭하거나 파일을 드래그하세요</h3>
+          <p>PPT · PPTX · PDF · 여러 파일 동시 업로드 가능</p>
+          <input type="file" id="fi" accept=".ppt,.pptx,.pdf" multiple onchange="addFiles(this.files)">
+          <div class="flist" id="flist"></div>
+        </div>
+        <div style="margin-top:14px;text-align:right">
+          <button class="btn btn-p" id="ubtn" onclick="doUploadFile()" disabled>
+            <span id="ubtn-t">파일 업로드 &amp; 분석</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Notion tab -->
+      <div class="tc" id="tc-notion">
+        <div class="ig"><label>노션 페이지 URL</label>
+          <input type="url" id="nurl" placeholder="https://www.notion.so/your-page-...">
+        </div>
+        <div style="text-align:right">
+          <button class="btn btn-p" id="nbtn" onclick="doUploadNotion()">
+            <span id="nbtn-t">링크 분석</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Parsed result -->
+      <div id="parsed-ok" style="display:none;margin-top:18px">
+        <div class="ok-banner">✅ 포트폴리오 분석이 완료되었습니다. 아래에서 내용을 확인하세요.</div>
+        <div id="parsed-out"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2 ── -->
+  <div class="scard hidden" id="s2">
+    <div class="sh"><div class="sn">2</div><div><h2>회고 입력 &amp; AI 인터뷰</h2><p>회고를 작성하고 AI의 꼬리질문에 답변하세요</p></div></div>
+    <div class="sb">
+
+      <!-- 2a: Retro -->
+      <div id="ss-retro">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:12px">📝 회고 방식 선택</h3>
+        <div class="rtabs">
+          <button class="rtab" onclick="selRetro('KPT',this)">KPT</button>
+          <button class="rtab" onclick="selRetro('4F',this)">4F</button>
+          <button class="rtab" onclick="selRetro('4L',this)">4L</button>
+        </div>
+
+        <!-- KPT -->
+        <div class="rform" id="rf-KPT">
+          <div class="ig"><label>Keep · 만족스러운 점 (유지하고 싶은 기술/습관)</label>
+            <textarea id="kpt-keep" placeholder="다음에도 유지하고 싶은 것들을 적어주세요..."></textarea></div>
+          <div class="ig"><label>Problem · 아쉬운 점 (기술적 한계, 비효율적 과정)</label>
+            <textarea id="kpt-prob" placeholder="개선이 필요했던 부분을 적어주세요..."></textarea></div>
+          <div class="ig"><label>Try · 해결 방안 (다음 프로젝트에서 시도할 것)</label>
+            <textarea id="kpt-try" placeholder="다음에 시도할 행동을 적어주세요..."></textarea></div>
+        </div>
+
+        <!-- 4F -->
+        <div class="rform" id="rf-4F">
+          <div class="ig"><label>Facts · 객관적으로 어떤 일이 일어났는가</label>
+            <textarea id="4f-facts" placeholder="무슨 일이 있었는지 사실 중심으로..."></textarea></div>
+          <div class="ig"><label>Feelings · 그 과정에서 어떤 감정을 느꼈는가</label>
+            <textarea id="4f-feel" placeholder="느꼈던 감정을 솔직하게..."></textarea></div>
+          <div class="ig"><label>Findings · 어떤 인사이트를 얻었는가</label>
+            <textarea id="4f-find" placeholder="얻은 인사이트나 교훈을..."></textarea></div>
+          <div class="ig"><label>Future · 배운 점을 앞으로 어떻게 적용할 것인가</label>
+            <textarea id="4f-fut" placeholder="앞으로 어떻게 적용할지..."></textarea></div>
+        </div>
+
+        <!-- 4L -->
+        <div class="rform" id="rf-4L">
+          <div class="ig"><label>Liked · 가장 흥미롭고 즐거웠던 부분</label>
+            <textarea id="4l-like" placeholder="즐거웠던 부분을..."></textarea></div>
+          <div class="ig"><label>Learned · 새롭게 습득한 기술/지식</label>
+            <textarea id="4l-learn" placeholder="새롭게 배운 것들을..."></textarea></div>
+          <div class="ig"><label>Lacked · 스스로 느낀 역량의 한계</label>
+            <textarea id="4l-lack" placeholder="부족했던 부분을..."></textarea></div>
+          <div class="ig"><label>Longed for · 더 좋은 결과를 위해 필요했던 것</label>
+            <textarea id="4l-long" placeholder="필요했던 것들을..."></textarea></div>
+        </div>
+
+        <div style="display:flex;gap:9px;margin-top:6px;flex-wrap:wrap">
+          <button class="btn btn-p" id="retro-go" onclick="saveRetroAndInterview()" style="display:none">저장 후 AI 인터뷰 시작 →</button>
+          <button class="btn btn-s" onclick="skipRetro()">회고 건너뛰기 →</button>
+        </div>
+      </div>
+
+      <!-- 2b: Interview -->
+      <div id="ss-interview" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <h3 style="font-size:14px;font-weight:700">🤖 AI 심층 인터뷰</h3>
+          <div class="qbadge">질문 <strong id="qnum">1</strong> / <strong id="qtot">3</strong></div>
+        </div>
+        <div class="chat-wrap">
+          <div class="chat-msgs" id="chat-msgs"></div>
+          <div class="chat-in" id="chat-in">
+            <textarea id="ans" placeholder="답변을 입력하세요… (Ctrl+Enter로 전송)" onkeydown="ansKey(event)"></textarea>
+            <button class="btn btn-p" id="ansbtn" onclick="submitAns()">전송</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 3 ── -->
+  <div class="scard hidden" id="s3">
+    <div class="sh"><div class="sn">3</div><div><h2>포트폴리오 양식 선택</h2><p>지원 직군에 맞는 포트폴리오 형식을 선택하세요</p></div></div>
+    <div class="sb">
+      <div class="tgrid">
+        <div class="tcard" onclick="selType('developer',this)"><div class="ticon">💻</div><h3>개발자</h3><p>기술스택 · 프로젝트 · 성과 중심</p></div>
+        <div class="tcard" onclick="selType('planner',this)"><div class="ticon">📋</div><h3>기획자</h3><p>서비스기획 · 리서치 · 지표 중심</p></div>
+        <div class="tcard" onclick="selType('designer',this)"><div class="ticon">🎨</div><h3>디자이너</h3><p>프로젝트 · 툴 · 결과물 중심</p></div>
+        <div class="tcard" onclick="selType('marketer',this)"><div class="ticon">📈</div><h3>마케터</h3><p>캠페인 · 성과지표 · 채널 중심</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 4 ── -->
+  <div class="scard hidden" id="s4">
+    <div class="sh"><div class="sn">4</div><div><h2>채용공고 맵핑</h2><p>지원할 채용공고를 입력하면 맞춤형 포트폴리오를 생성합니다</p></div></div>
+    <div class="sb">
+      <div class="ig"><label>지원 직무명 <span style="color:var(--err)">*</span></label>
+        <input type="text" id="jobt" placeholder="예: 백엔드 개발자, UX 기획자, 브랜드 마케터">
+      </div>
+
+      <div class="jtabs">
+        <button class="jtab active" onclick="jTab('url',this)">🔗 URL로 입력</button>
+        <button class="jtab" onclick="jTab('text',this)">✏️ 직접 입력</button>
+      </div>
+
+      <div id="jt-url">
+        <div class="ig"><label>채용공고 URL</label>
+          <div style="display:flex;gap:7px">
+            <input type="url" id="joburl" placeholder="https://..." style="flex:1">
+            <button class="btn btn-s btn-sm" id="scrbtn" onclick="scrapeJob()">불러오기</button>
+          </div>
+        </div>
+        <div id="job-preview" style="display:none">
+          <div class="pcard">
+            <h4>📄 채용공고 미리보기</h4>
+            <p id="job-prev-txt" style="font-size:12px;color:var(--g500);max-height:160px;overflow-y:auto;margin-top:6px;line-height:1.65;white-space:pre-wrap"></p>
+          </div>
+        </div>
+      </div>
+
+      <div id="jt-text" style="display:none">
+        <div class="ig"><label>채용공고 텍스트</label>
+          <textarea id="jobtxt" placeholder="채용공고 내용을 붙여넣어주세요..." style="min-height:180px"></textarea>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;text-align:right">
+        <button class="btn btn-p" id="genbtn" onclick="doGenerate()" style="padding:12px 26px;font-size:14px">
+          ✨ 맞춤형 포트폴리오 생성
+        </button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Result ── -->
+<div id="result-page">
+  <div class="rh">
+    <div><h2>🎉 포트폴리오 생성 완료</h2><p id="rsub">채용공고에 맞춤화된 포트폴리오입니다</p></div>
+    <div class="ract">
+      <button class="btn btn-s btn-sm" onclick="startOver()">↩ 처음부터</button>
+      <button class="btn btn-o btn-sm" onclick="copyPF()">📋 텍스트 복사</button>
+      <button class="btn btn-p btn-sm" onclick="window.print()">🖨️ PDF 저장</button>
+    </div>
+  </div>
+  <div class="pw"><div class="pbox" id="pf-out"></div></div>
+</div>
+
+<!-- ── Generate overlay ── -->
+<div id="gen-overlay">
+  <div class="gen-box">
+    <div class="big-spin"></div>
+    <h3>포트폴리오 생성 중…</h3>
+    <p>AI가 채용공고를 분석하고<br>맞춤형 포트폴리오를 작성하고 있습니다.<br><br>약 10~20초 소요됩니다.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const S = {
+  sid: null, step: 1, retroType: null, pfType: null,
+  jobPosting: '', files: []
+};
+
+// ── Tab helpers ──────────────────────────────────────────────────────────────
+function uTab(id, el) {
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#s1 .tc').forEach(t => t.classList.remove('active'));
+  document.getElementById('tc-' + id).classList.add('active');
+}
+
+function jTab(id, el) {
+  document.querySelectorAll('.jtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('jt-url').style.display = id === 'url' ? 'block' : 'none';
+  document.getElementById('jt-text').style.display = id === 'text' ? 'block' : 'none';
+}
+
+// ── File handling ────────────────────────────────────────────────────────────
+const dz = document.getElementById('dzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  addFiles(Array.from(e.dataTransfer.files).filter(f => /\.(pptx?|pdf)$/i.test(f.name)));
+});
+
+function addFiles(files) {
+  Array.from(files).forEach(f => {
+    if (!S.files.find(x => x.name === f.name)) S.files.push(f);
+  });
+  renderFiles();
+}
+
+function rmFile(name) {
+  S.files = S.files.filter(f => f.name !== name);
+  renderFiles();
+}
+
+function renderFiles() {
+  const lst = document.getElementById('flist');
+  lst.innerHTML = S.files.map(f =>
+    `<div class="fchip">📄 ${esc(f.name)}<button onclick="rmFile('${esc(f.name)}')" title="제거">×</button></div>`
+  ).join('');
+  document.getElementById('ubtn').disabled = S.files.length === 0;
+}
+
+async function doUploadFile() {
+  if (!S.files.length) return;
+  setBtnLoad('ubtn', 'ubtn-t', true);
+  const fd = new FormData();
+  S.files.forEach(f => fd.append('files', f));
+  try {
+    const d = await api('/upload/file', fd, true);
+    S.sid = d.session_id;
+    showParsed(d.parsed);
+    showStep(2);
+  } catch (e) { toast(e.message, 'err'); }
+  finally { setBtnLoad('ubtn', 'ubtn-t', false, '파일 업로드 & 분석'); }
+}
+
+async function doUploadNotion() {
+  const url = document.getElementById('nurl').value.trim();
+  if (!url) { toast('노션 URL을 입력하세요', 'err'); return; }
+  setBtnLoad('nbtn', 'nbtn-t', true);
+  try {
+    const d = await api('/upload/notion', { url });
+    S.sid = d.session_id;
+    showParsed(d.parsed);
+    showStep(2);
+  } catch (e) { toast(e.message, 'err'); }
+  finally { setBtnLoad('nbtn', 'nbtn-t', false, '링크 분석'); }
+}
+
+function showParsed(list) {
+  let h = '';
+  list.forEach(p => {
+    h += '<div class="pcard">';
+    if (p.summary) h += `<p style="font-size:12px;color:var(--g700);margin-bottom:9px;line-height:1.6">${esc(p.summary)}</p>`;
+    if (p.projects && p.projects.length) {
+      h += `<h4>프로젝트 ${p.projects.length}개</h4>`;
+      p.projects.forEach(pr => {
+        h += `<div style="margin-bottom:7px">
+          <strong style="font-size:12px">${esc(pr.name||'프로젝트')}</strong>
+          ${pr.role ? `<span style="font-size:11px;color:var(--g500);margin-left:7px">${esc(pr.role)}</span>` : ''}
+          ${pr.tech_stack && pr.tech_stack.length ? `<div class="tags" style="margin-top:4px">${pr.tech_stack.slice(0,6).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+        </div>`;
+      });
+    }
+    if (p.skills && p.skills.length) {
+      h += `<h4 style="margin-top:9px">보유 스킬</h4><div class="tags">${p.skills.slice(0,10).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div>`;
+    }
+    h += '</div>';
+  });
+  document.getElementById('parsed-out').innerHTML = h;
+  document.getElementById('parsed-ok').style.display = 'block';
+}
+
+// ── Step management ──────────────────────────────────────────────────────────
+function showStep(n) {
+  S.step = n;
+  for (let i = 1; i <= 4; i++) {
+    const p = document.getElementById('p' + i);
+    const sc = p.querySelector('.sc');
+    if (i < n) { p.className = 'si done'; sc.textContent = '✓'; }
+    else if (i === n) { p.className = 'si active'; sc.textContent = i; }
+    else { p.className = 'si'; sc.textContent = i; }
+  }
+  if (n <= 4) {
+    const card = document.getElementById('s' + n);
+    card.classList.remove('hidden');
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  }
+}
+
+// ── Retrospective ────────────────────────────────────────────────────────────
+function selRetro(type, el) {
+  S.retroType = type;
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.rform').forEach(f => f.classList.remove('active'));
+  document.getElementById('rf-' + type).classList.add('active');
+  document.getElementById('retro-go').style.display = 'inline-flex';
+}
+
+async function saveRetroAndInterview() {
+  let data = {};
+  if (S.retroType === 'KPT') {
+    data = { Keep: v('kpt-keep'), Problem: v('kpt-prob'), Try: v('kpt-try') };
+  } else if (S.retroType === '4F') {
+    data = { Facts: v('4f-facts'), Feelings: v('4f-feel'), Findings: v('4f-find'), Future: v('4f-fut') };
+  } else if (S.retroType === '4L') {
+    data = { Liked: v('4l-like'), Learned: v('4l-learn'), Lacked: v('4l-lack'), 'Longed for': v('4l-long') };
+  }
+  try { await api('/retro/save', { session_id: S.sid, retro_type: S.retroType, retro_data: data }); }
+  catch (_) {}
+  startInterview();
+}
+
+async function skipRetro() {
+  try { await api('/retro/save', { session_id: S.sid, retro_type: 'skip', retro_data: {} }); }
+  catch (_) {}
+  startInterview();
+}
+
+// ── Interview ────────────────────────────────────────────────────────────────
+async function startInterview() {
+  document.getElementById('ss-retro').style.display = 'none';
+  document.getElementById('ss-interview').style.display = 'block';
+  addMsg('ai', '안녕하세요! 포트폴리오를 더 깊이 이해하기 위해 몇 가지 질문을 드릴게요 🙂');
+  showTyping();
+  try {
+    const d = await api('/interview/start', { session_id: S.sid });
+    removeTyping();
+    document.getElementById('qnum').textContent = d.number;
+    document.getElementById('qtot').textContent = d.total;
+    addMsg('ai', d.question);
+  } catch (e) { removeTyping(); toast('인터뷰 시작 실패', 'err'); }
+}
+
+function addMsg(role, text) {
+  const c = document.getElementById('chat-msgs');
+  const d = document.createElement('div');
+  d.className = 'cmsg ' + role;
+  d.innerHTML = `<div class="clabel">${role === 'ai' ? '🤖 AI 인터뷰어' : '👤 나'}</div>
+    <div class="cbubble">${esc(text)}</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+
+function showTyping() {
+  const c = document.getElementById('chat-msgs');
+  const d = document.createElement('div');
+  d.className = 'cmsg ai'; d.id = 'typing-el';
+  d.innerHTML = '<div class="clabel">🤖 AI 인터뷰어</div><div class="typing"><span></span><span></span><span></span></div>';
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-el');
+  if (el) el.remove();
+}
+
+function ansKey(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitAns(); }
+}
+
+async function submitAns() {
+  const inp = document.getElementById('ans');
+  const ans = inp.value.trim();
+  if (!ans) return;
+  addMsg('user', ans);
+  inp.value = '';
+  const btn = document.getElementById('ansbtn');
+  btn.disabled = true; btn.textContent = '…';
+  showTyping();
+  try {
+    const d = await api('/interview/answer', { session_id: S.sid, answer: ans });
+    removeTyping();
+    if (d.done) {
+      addMsg('ai', '모든 질문이 완료되었습니다! 이제 포트폴리오 양식을 선택해주세요 🎉');
+      document.getElementById('chat-in').style.display = 'none';
+      setTimeout(() => showStep(3), 1400);
+    } else {
+      document.getElementById('qnum').textContent = d.number;
+      addMsg('ai', d.question);
+    }
+  } catch (e) { removeTyping(); toast('답변 제출 실패', 'err'); }
+  finally { btn.disabled = false; btn.textContent = '전송'; }
+}
+
+// ── Portfolio type ────────────────────────────────────────────────────────────
+function selType(type, el) {
+  S.pfType = type;
+  document.querySelectorAll('.tcard').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  setTimeout(() => showStep(4), 550);
+}
+
+// ── Job posting ───────────────────────────────────────────────────────────────
+async function scrapeJob() {
+  const url = document.getElementById('joburl').value.trim();
+  if (!url) { toast('URL을 입력하세요', 'err'); return; }
+  const btn = document.getElementById('scrbtn');
+  btn.textContent = '불러오는 중…'; btn.disabled = true;
+  try {
+    const d = await api('/scrape', { url });
+    S.jobPosting = d.text;
+    document.getElementById('job-prev-txt').textContent = d.text.substring(0, 600) + (d.text.length > 600 ? '\n…' : '');
+    document.getElementById('job-preview').style.display = 'block';
+    toast('채용공고를 가져왔습니다!', 'ok');
+  } catch (e) { toast('URL 파싱 실패. 직접 입력해주세요.', 'err'); }
+  finally { btn.textContent = '불러오기'; btn.disabled = false; }
+}
+
+async function doGenerate() {
+  const jobTitle = v('jobt');
+  if (!jobTitle) { toast('지원 직무명을 입력하세요', 'err'); return; }
+
+  const isUrl = document.getElementById('jt-url').style.display !== 'none';
+  const jobPosting = isUrl ? S.jobPosting : v('jobtxt');
+  if (!jobPosting) { toast(isUrl ? '채용공고를 불러오거나 직접 입력 탭을 사용하세요' : '채용공고를 입력하세요', 'err'); return; }
+  if (!S.pfType) { toast('포트폴리오 양식을 먼저 선택하세요', 'err'); return; }
+
+  document.getElementById('gen-overlay').classList.add('show');
+  try {
+    const d = await api('/generate', {
+      session_id: S.sid, job_title: jobTitle,
+      job_posting: jobPosting, portfolio_type: S.pfType
+    });
+    showResult(d);
+  } catch (e) { toast(e.message, 'err'); }
+  finally { document.getElementById('gen-overlay').classList.remove('show'); }
+}
+
+// ── Result ────────────────────────────────────────────────────────────────────
+const typeNames = { developer: '개발자', planner: '기획자', designer: '디자이너', marketer: '마케터' };
+
+function showResult(d) {
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('prog-bar').style.display = 'none';
+  const rp = document.getElementById('result-page');
+  rp.classList.add('vis');
+  document.getElementById('rsub').textContent = `${d.job_title} · ${typeNames[d.portfolio_type]||d.portfolio_type} 형식`;
+  document.getElementById('pf-out').innerHTML = d.portfolio_html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function copyPF() {
+  const txt = document.getElementById('pf-out').innerText;
+  navigator.clipboard.writeText(txt)
+    .then(() => toast('클립보드에 복사되었습니다!', 'ok'))
+    .catch(() => toast('복사 실패', 'err'));
+}
+
+function startOver() {
+  S.sid = null; S.step = 1; S.retroType = null; S.pfType = null;
+  S.jobPosting = ''; S.files = [];
+
+  document.getElementById('result-page').classList.remove('vis');
+  document.getElementById('main').style.display = 'block';
+  document.getElementById('prog-bar').style.display = 'block';
+
+  ['s2','s3','s4'].forEach(id => document.getElementById(id).classList.add('hidden'));
+
+  // Reset step 1
+  document.getElementById('parsed-ok').style.display = 'none';
+  document.getElementById('flist').innerHTML = '';
+  document.getElementById('ubtn').disabled = true;
+  document.getElementById('nurl').value = '';
+  S.files = [];
+
+  // Reset step 2
+  document.getElementById('ss-retro').style.display = 'block';
+  document.getElementById('ss-interview').style.display = 'none';
+  document.getElementById('chat-msgs').innerHTML = '';
+  document.getElementById('chat-in').style.display = 'flex';
+  document.getElementById('ans').value = '';
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.rform').forEach(f => f.classList.remove('active'));
+  document.getElementById('retro-go').style.display = 'none';
+
+  // Reset step 3
+  document.querySelectorAll('.tcard').forEach(c => c.classList.remove('sel'));
+
+  // Reset step 4
+  document.getElementById('jobt').value = '';
+  document.getElementById('joburl').value = '';
+  document.getElementById('jobtxt').value = '';
+  document.getElementById('job-preview').style.display = 'none';
+  S.jobPosting = '';
+
+  // Reset progress
+  for (let i = 1; i <= 4; i++) {
+    const p = document.getElementById('p' + i);
+    const sc = p.querySelector('.sc');
+    p.className = i === 1 ? 'si active' : 'si';
+    sc.textContent = i;
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function v(id) { return document.getElementById(id).value.trim(); }
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function api(path, body, isForm = false) {
+  const opts = { method: 'POST' };
+  if (isForm) { opts.body = body; }
+  else { opts.headers = { 'Content-Type': 'application/json' }; opts.body = JSON.stringify(body); }
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    let msg = '서버 오류가 발생했습니다.';
+    try { const e = await res.json(); msg = e.detail || msg; } catch (_) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+function setBtnLoad(btnId, txtId, loading, label = '') {
+  const btn = document.getElementById(btnId);
+  const txt = document.getElementById(txtId);
+  btn.disabled = loading;
+  txt.innerHTML = loading ? '<span class="spin"></span> 분석 중…' : label;
+}
+
+let tTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type ? ' ' + type : '') + ' show';
+  clearTimeout(tTimer);
+  tTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
