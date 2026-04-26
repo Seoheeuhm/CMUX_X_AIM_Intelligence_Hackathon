@@ -14,6 +14,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
+
 load_dotenv()
 print("KEY LOADED:", bool(os.getenv("ANTHROPIC_API_KEY")))
 
@@ -75,7 +76,7 @@ def scrape(url: str) -> str:
             tag.decompose()
         lines = [ln.strip() for ln in soup.get_text("\n").splitlines() if ln.strip()]
         return "\n".join(lines[:700])
-    except Exception as e:
+    except Exception:
         return ""
 
 
@@ -119,7 +120,7 @@ class InterviewAnswerReq(BaseModel):
 class RetroReq(BaseModel):
     session_id: str
     retro_type: str
-    retro_data: dict
+    retro_data: list  # 프로젝트별 회고 리스트 [{"project":"...", "Keep":"...", ...}, ...]
 
 class GenerateReq(BaseModel):
     session_id: str
@@ -131,7 +132,6 @@ class GenerateReq(BaseModel):
 # ── Static files ─────────────────────────────────────────────────────────────
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
 
 @app.get("/")
 def root():
@@ -192,7 +192,10 @@ def upload_notion(req: UrlReq):
 def retro_save(req: RetroReq):
     if req.session_id not in sessions:
         raise HTTPException(404, "세션을 찾을 수 없습니다.")
-    sessions[req.session_id]["retro"] = {"type": req.retro_type, "data": req.retro_data}
+    sessions[req.session_id]["retro"] = {
+        "type": req.retro_type,
+        "data": req.retro_data  # list of per-project retro dicts
+    }
     return {"ok": True}
 
 
@@ -214,8 +217,8 @@ def interview_start(req: InterviewStartReq):
                 f"포트폴리오 내용:\n{summary}\n\n"
                 "이 경험을 더 깊이 파악하는 꼬리 질문 3개를 JSON만 반환하세요 (설명 없이):\n"
                 '{"questions":["질문1","질문2","질문3"]}\n\n'
-                "질문 주제: 1) 가장 어려운 기술적/업무적 문제와 해결법  "
-                "2) 구체적 성과 수치 또는 임팩트  3) 팀 내 핵심 기여와 역할"
+                "질문 주제: 1) 가장 어려운 기술적/업무적 문제와 해결법 "
+                "2) 구체적 성과 수치 또는 임팩트 3) 팀 내 핵심 기여와 역할"
             ),
         }],
     )
@@ -264,10 +267,30 @@ def scrape_url(req: UrlReq):
 # ── Generate portfolio ────────────────────────────────────────────────────────
 
 TEMPLATES = {
-    "developer": "개발자 포트폴리오: 기술스택 요약 / 주요 프로젝트(역할·기술·성과) / 기술적 문제해결 경험 / 정량적 성과(성능개선·코드품질)",
-    "planner": "기획자 포트폴리오: 서비스기획 경험 / 주요 프로젝트(기획범위·리서치방법·지표) / UX 개선 사례 / 비즈니스 임팩트(MAU·전환율·매출)",
-    "designer": "디자이너 포트폴리오: 디자인 철학·역량 / 주요 프로젝트(범위·사용툴·결과물) / UX 개선 사례 / 시각적 성과·브랜드 임팩트",
-    "marketer": "마케터 포트폴리오: 채널 경험 요약 / 주요 캠페인(채널·타겟·성과지표) / 데이터 기반 전략 / ROI·ROAS·CAC 핵심 지표 성과",
+    "developer": {
+        "s1_tag": "기술스택 중심 (언어·프레임워크·인프라)",
+        "s3_title": "기술 역량 요약",
+        "s4_metric": "성능 개선율·코드 품질·배포 횟수 등 기술 지표",
+        "s5_title": "기술적 문제해결 역량",
+    },
+    "planner": {
+        "s1_tag": "기획 방법론 중심 (리서치·UX·지표 설계)",
+        "s3_title": "기획 역량 요약",
+        "s4_metric": "MAU·전환율·NPS·기획 범위 등 서비스 지표",
+        "s5_title": "서비스 기획 역량",
+    },
+    "designer": {
+        "s1_tag": "툴·결과물 중심 (Figma·브랜딩·UX 개선)",
+        "s3_title": "디자인 역량 요약",
+        "s4_metric": "사용성 개선·브랜드 임팩트·결과물 수 등 시각 지표",
+        "s5_title": "디자인 프로세스 역량",
+    },
+    "marketer": {
+        "s1_tag": "채널·지표 중심 (캠페인·ROAS·CTR·세그먼트)",
+        "s3_title": "채널 경험 요약",
+        "s4_metric": "CTR·ROAS·CAC·세그먼트 수 등 퍼포먼스 지표",
+        "s5_title": "데이터 기반 전략 역량",
+    },
 }
 
 
@@ -283,56 +306,121 @@ def generate(req: GenerateReq):
     for i, (q, a) in enumerate(zip(sess.get("questions", []), sess.get("answers", [])), 1):
         interview_txt += f"Q{i}. {q}\nA. {a}\n\n"
 
+    # 프로젝트별 회고 포맷
     retro_txt = ""
     if sess.get("retro"):
         r = sess["retro"]
-        retro_txt = f"회고 유형: {r.get('type', '')}\n"
-        for k, v in (r.get("data") or {}).items():
-            if v:
-                retro_txt += f"  {k}: {v}\n"
+        rtype = r.get("type", "")
+        rdata = r.get("data", [])
+        if rtype and rtype != "skip" and rdata:
+            retro_txt = f"회고 유형: {rtype}\n"
+            if isinstance(rdata, list):
+                for pr in rdata:
+                    pname = pr.get("project", "프로젝트")
+                    retro_txt += f"\n[프로젝트: {pname}]\n"
+                    for k, val in pr.items():
+                        if k != "project" and val:
+                            retro_txt += f"  {k}: {val}\n"
+            elif isinstance(rdata, dict):
+                for k, val in rdata.items():
+                    if val:
+                        retro_txt += f"  {k}: {val}\n"
 
     tmpl = TEMPLATES.get(req.portfolio_type, TEMPLATES["developer"])
 
     prompt = f"""당신은 채용 전문가 겸 포트폴리오 작성 전문가입니다.
+아래 지원자 정보와 채용공고를 바탕으로, 지정된 8개 섹션 구조에 맞춰 포트폴리오 HTML을 생성하세요.
 
 [지원자 정보]
-파싱된 포트폴리오:
-{mat_json}
-
-인터뷰 답변:
-{interview_txt or "(없음)"}
-
-회고:
-{retro_txt or "(없음)"}
+파싱된 포트폴리오: {mat_json}
+인터뷰 답변: {interview_txt or "(없음)"}
+회고: {retro_txt or "(없음)"}
 
 [채용 정보]
 지원 직무: {req.job_title}
-채용공고:
-{req.job_posting[:3500]}
+채용공고: {req.job_posting[:3500]}
 
-[출력 형식]
-{tmpl}
+[직무 유형별 설정]
+스킬 태그 방향: {tmpl["s1_tag"]}
+경험 요약 섹션명: {tmpl["s3_title"]}
+성과 지표 방향: {tmpl["s4_metric"]}
+역량 섹션명: {tmpl["s5_title"]}
+
+[출력 섹션 구조 — 반드시 아래 8개 섹션을 순서대로 모두 포함]
+
+SECTION 1 — 지원자 핵심 요약 카드
+- <section class="section s1">
+- 포지셔닝 한 줄 문장 (지원자의 강점을 직무에 맞게 재해석)
+- 지원 직무명
+- 핵심 스킬 태그: {tmpl["s1_tag"]} 기준으로 <span class="tech-tag">태그</span> 나열
+
+SECTION 2 — 채용공고 Fit 분석
+- <section class="section s2">
+- 채용공고에서 요구역량 5~8개 추출
+- 각 요구역량 vs 지원자 경험 1:1 매핑 테이블
+- 직접 경험: ✅ 직접 경험 / 간접 경험: 🔶 간접 경험 / 미경험: ⚠️ 학습 중
+- 테이블 하단에 Fit 종합 코멘트 한 줄
+
+SECTION 3 — {tmpl["s3_title"]}
+- <section class="section s3">
+- 서술형 요약 2~3줄 (지원자 전체 경험을 직무 관점으로 재해석)
+- 핵심 역량 불릿 4~5개 (역량명: 경험 설명)
+- 도구·툴 나열
+
+SECTION 4 — 주요 프로젝트 카드 (프로젝트 수만큼 반복)
+- <section class="section s4">
+- 각 프로젝트마다 <div class="item"> 카드 1개
+- 카드 내 필수 구성:
+  1) 프로젝트명 + 부제목
+  2) 📌 프로젝트 배경 & 목적 (문제의식과 목표, 3~4줄)
+  3) 📌 담당 범위 & 기여도 (역할 / 기여도 % / 팀 구성 / 기간)
+  4) 📌 핵심 과정 & 의사결정 (전체 흐름 단계 → 단계 / 왜 이 방법을 선택했는가)
+  5) 📌 어려웠던 점 & 해결 (문제 상황 → 극복 방법)
+  6) 📌 핵심 성과 ({tmpl["s4_metric"]} 포함, 수치 중심 3개 이상)
+  7) 📌 사용 기술 (<span class="tech-tag">태그</span> 나열)
+
+SECTION 5 — {tmpl["s5_title"]}
+- <section class="section s5">
+- 직무 연계 총평 2~3줄
+- 역량별 불릿 (역량명: 경험 설명 — 직무 연계 의미)
+
+SECTION 6 — 회고 & 성장 스토리
+- <section class="section s6">
+- 회고 데이터가 있으면 프로젝트별로 자연스러운 문장으로 재구성, 없으면 인터뷰 답변 기반으로 작성
+- 3개 파트로 구성:
+  1) 이 경험에서 얻은 인사이트 (2~3줄)
+  2) 나의 업무 스타일 (1~2줄)
+  3) 다음 프로젝트에서의 적용 계획 (1~2줄)
+
+SECTION 7 — 핵심 성과 지표 요약
+- <section class="section s7">
+- 전체 프로젝트 성과를 하나의 테이블로 정리
+- 컬럼: 항목 | 수치/성과 | 직무 연계 의미
+- 5~8개 행
+
+SECTION 8 — 미보유 역량 & 학습 계획
+- <section class="section s8">
+- 채용공고 대비 미보유/부족 역량 2~3개 솔직하게 명시
+- 각 항목에 현재 보완 방법 또는 학습 계획 함께 작성
 
 [작성 지침]
-1. 채용공고의 요구사항과 핵심 키워드에 맞게 경험을 재해석하세요.
-2. 채용공고에서 언급된 키워드는 반드시 <strong class="kw">키워드</strong>로 강조하세요.
-3. 구체적인 수치와 성과를 포함하세요.
-4. {req.job_title} 직무에 적합한 강점을 부각하세요.
-5. 각 섹션은 <section class="section">으로, 섹션 제목은 <h2 class="section-title">으로,
-   항목 카드는 <div class="item">으로 작성하세요.
+1. 채용공고의 핵심 키워드는 반드시 <strong class="kw">키워드</strong>로 강조하세요.
+2. 모든 수치와 경험은 지원자 정보에 실제로 있는 내용만 사용하세요. 없으면 생략하세요.
+3. 마크다운·코드블록 없이 순수 HTML 콘텐츠만 반환하세요 (html/head/body 태그 없이).
+4. 전체를 <div class="portfolio-content"></div>로 감싸세요.
+5. 섹션 제목은 <h2 class="section-title">으로, 항목 카드는 <div class="item">으로 작성하세요.
 6. 기술 태그는 <span class="tech-tag">태그명</span>을 사용하세요.
-7. 마크다운·코드블록 없이 순수 HTML 콘텐츠만 반환하세요 (html/head/body 태그 없이).
-8. 전체를 <div class="portfolio-content"> ... </div>로 감싸세요."""
+7. 8개 섹션을 순서대로 빠짐없이 모두 생성하세요.
+"""
 
     c = client()
     msg = c.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=4096,
+        max_tokens=6000,
         messages=[{"role": "user", "content": prompt}],
     )
     html = msg.content[0].text.strip()
 
-    # Strip code fences if any
     if "```" in html:
         m = re.search(r"```(?:html)?\s*([\s\S]*?)```", html)
         if m:

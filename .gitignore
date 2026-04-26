@@ -3,4 +3,4 @@ __pycache__/
 *.pyc
 venv/
 .vscode/
-static/uploads/
+static/uploads/git init
