@@ -299,6 +299,9 @@ SECTION 4 — 회고 & 성장 스토리
 class UrlReq(BaseModel):
     url: str
 
+class TextReq(BaseModel):
+    text: str
+
 class InterviewStartReq(BaseModel):
     session_id: str
 
@@ -367,6 +370,22 @@ def upload_notion(req: UrlReq):
     parsed = parse_materials(raw, "Notion")
     sessions[sid] = {
         "materials": [{"source": "Notion", "raw": raw[:5000], "parsed": parsed}],
+        "retro": {},
+        "questions": [],
+        "answers": [],
+        "q_index": 0,
+    }
+    return {"session_id": sid, "parsed": [parsed]}
+
+
+@app.post("/upload/text")
+def upload_text(req: TextReq):
+    if not req.text.strip():
+        raise HTTPException(400, "텍스트를 입력해주세요.")
+    sid = str(uuid.uuid4())
+    parsed = parse_materials(req.text, "직접 입력")
+    sessions[sid] = {
+        "materials": [{"source": "직접 입력", "raw": req.text[:5000], "parsed": parsed}],
         "retro": {},
         "questions": [],
         "answers": [],

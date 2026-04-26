@@ -153,12 +153,22 @@ textarea{resize:vertical;min-height:90px}
 .pbox .portfolio-content p{font-size:13px;line-height:1.8;color:var(--g700);margin-bottom:6px}
 .pbox .portfolio-content ul{padding-left:18px;margin-top:6px;margin-bottom:6px}
 .pbox .portfolio-content ul li{font-size:13px;line-height:1.85;color:var(--g700)}
-.pbox .portfolio-content table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-.pbox .portfolio-content th{background:var(--pl);color:var(--p);padding:9px 13px;text-align:left;font-weight:700;border:1px solid var(--g200)}
-.pbox .portfolio-content td{padding:9px 13px;border:1px solid var(--g200);color:var(--g700);line-height:1.65}
+.pbox .portfolio-content table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;border-radius:10px;overflow:hidden;border:1px solid #BFDBFE}
+.pbox .portfolio-content th{background:#DBEAFE;color:#1E3A8A;padding:11px 14px;text-align:left;font-weight:700;border-bottom:2px solid #93C5FD;border-right:1px solid #BFDBFE;font-size:12px;letter-spacing:.2px}
+.pbox .portfolio-content th:last-child{border-right:none}
+.pbox .portfolio-content td{padding:10px 14px;border-bottom:1px solid #E5E7EB;border-right:1px solid #E5E7EB;color:#111827;line-height:1.7;background:#fff}
+.pbox .portfolio-content td:last-child{border-right:none}
+.pbox .portfolio-content tr:last-child td{border-bottom:none}
+.pbox .portfolio-content tr:nth-child(even) td{background:#F0F7FF}
 .pbox .portfolio-content .kw{color:var(--p);font-weight:700;background:var(--pl);padding:1px 5px;border-radius:3px}
 .pbox .portfolio-content .tech-tag{display:inline-block;background:var(--g100);color:var(--g700);border-radius:5px;padding:3px 9px;font-size:11px;margin:2px;font-weight:600}
 .pbox .portfolio-content .kw-tag{display:inline-block;background:#F0FDF4;color:#16A34A;border-radius:20px;padding:3px 10px;font-size:11px;margin:2px;font-weight:600;border:1px solid #86EFAC}
+/* s8 미보유 역량 — 파스텔 앰버 톤 */
+.pbox .portfolio-content .s8 .item{background:#FFF8F0;border:1.5px solid #FCD9A0;border-left:4px solid #F59E0B}
+.pbox .portfolio-content .s8 .item h3{color:#92400E}
+.pbox .portfolio-content .s8 .item p,.pbox .portfolio-content .s8 .item li{color:#78350F}
+.pbox .portfolio-content .s8 .item strong{color:#B45309}
+.pbox .portfolio-content .lack-badge{display:inline-block;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-bottom:7px}
 
 /* 카드별 복사 버튼 */
 .copy-card-btn{position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--g300);background:#fff;font-size:11px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .2s}
@@ -185,14 +195,14 @@ textarea{resize:vertical;min-height:90px}
 <header>
   <div class="logo">P</div>
   <div class="hd">
-    <h1>AI 포트폴리오 생성기</h1>
+    <h1>포트폴로그 | Portfo-Log</h1>
     <p>PPT/PDF 업로드 → 경험 정제 → 포트폴리오 완성</p>
   </div>
 </header>
 
 <div id="prog-bar">
   <div class="steps">
-    <div class="si active" id="p1"><div class="sc">1</div><div class="sl">재료 업로드</div></div>
+    <div class="si active" id="p1"><div class="sc">1</div><div class="sl">프로젝트 업로드</div></div>
     <div class="si" id="p2"><div class="sc">2</div><div class="sl">회고&amp;인터뷰</div></div>
     <div class="si" id="p3"><div class="sc">3</div><div class="sl">양식 선택</div></div>
     <div class="si" id="p4"><div class="sc">4</div><div class="sl">포트폴리오 생성</div></div>
@@ -203,11 +213,12 @@ textarea{resize:vertical;min-height:90px}
 
   <!-- ── STEP 1 ── -->
   <div class="scard" id="s1">
-    <div class="sh"><div class="sn">1</div><div><h2>재료 업로드</h2><p>포트폴리오 파일(PPT/PDF)을 업로드하거나 노션 링크를 입력하세요</p></div></div>
+    <div class="sh"><div class="sn">1</div><div><h2>프로젝트 업로드</h2><p>파일 업로드, 노션 링크, 텍스트 직접 입력 중 하나를 선택하세요</p></div></div>
     <div class="sb">
       <div class="tabs">
         <button class="tab active" onclick="uTab('file',this)">📁 파일 업로드</button>
         <button class="tab" onclick="uTab('notion',this)">🔗 노션 링크</button>
+        <button class="tab" onclick="uTab('text',this)">✏️ 텍스트 입력</button>
       </div>
       <div class="tc active" id="tc-file">
         <div class="uzone" id="dzone" onclick="document.getElementById('fi').click()">
@@ -230,6 +241,16 @@ textarea{resize:vertical;min-height:90px}
         <div style="text-align:right">
           <button class="btn btn-p" id="nbtn" onclick="doUploadNotion()">
             <span id="nbtn-t">링크 분석</span>
+          </button>
+        </div>
+      </div>
+      <div class="tc" id="tc-text">
+        <div class="ig"><label>프로젝트 내용 직접 입력</label>
+          <textarea id="raw-text" placeholder="프로젝트 설명, 역할, 사용 기술, 성과 등을 자유롭게 입력하세요.&#10;&#10;예시)&#10;프로젝트명: 쇼핑몰 리뉴얼&#10;역할: 프론트엔드 개발&#10;기술: React, TypeScript, Tailwind CSS&#10;성과: 페이지 로딩 속도 40% 개선, MAU 2만 달성" style="min-height:220px"></textarea>
+        </div>
+        <div style="text-align:right">
+          <button class="btn btn-p" id="tbtn" onclick="doUploadText()">
+            <span id="tbtn-t">텍스트 분석</span>
           </button>
         </div>
       </div>
@@ -366,7 +387,7 @@ textarea{resize:vertical;min-height:90px}
   <div class="gen-box">
     <div class="big-spin"></div>
     <h3>포트폴리오 생성 중…</h3>
-    <p>AI가 경험을 분석하고<br>포트폴리오 문장을 작성하고 있습니다.<br><br>약 15~25초 소요됩니다.</p>
+    <p>AI가 경험을 분석하고<br>포트폴리오 문장을 작성하고 있습니다.<br><br>약 1분 소요됩니다.</p>
   </div>
 </div>
 
@@ -455,6 +476,17 @@ async function doUploadNotion() {
     S.sid = d.session_id; showParsed(d.parsed); showStep(2);
   } catch (e) { toast(e.message, 'err'); }
   finally { setBtnLoad('nbtn', 'nbtn-t', false, '링크 분석'); }
+}
+
+async function doUploadText() {
+  const text = document.getElementById('raw-text').value.trim();
+  if (!text) { toast('프로젝트 내용을 입력하세요', 'err'); return; }
+  setBtnLoad('tbtn', 'tbtn-t', true);
+  try {
+    const d = await api('/upload/text', { text });
+    S.sid = d.session_id; showParsed(d.parsed); showStep(2);
+  } catch (e) { toast(e.message, 'err'); }
+  finally { setBtnLoad('tbtn', 'tbtn-t', false, '텍스트 분석'); }
 }
 
 function showParsed(list) {
@@ -712,6 +744,7 @@ function startOver() {
   document.getElementById('flist').innerHTML = '';
   document.getElementById('ubtn').disabled = true;
   document.getElementById('nurl').value = '';
+  document.getElementById('raw-text').value = '';
   document.getElementById('ss-retro').style.display = 'block';
   document.getElementById('ss-interview').style.display = 'none';
   document.getElementById('chat-msgs').innerHTML = '';
