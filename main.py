@@ -8,12 +8,12 @@ from typing import Any, Dict, List
 import anthropic
 import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from dotenv import load_dotenv
 
 load_dotenv()
 print("KEY LOADED:", bool(os.getenv("ANTHROPIC_API_KEY")))
@@ -80,6 +80,45 @@ def scrape(url: str) -> str:
         return ""
 
 
+def clean_html(raw: str) -> str:
+    raw = raw.strip()
+    raw = re.sub(r"^```(?:html)?\s*", "", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"\s*```$", "", raw)
+    return raw.strip()
+
+
+def call_claude(c: anthropic.Anthropic, prompt: str, max_tokens: int = 8192, max_rounds: int = 4) -> str:
+    """Claude 호출. max_tokens에 도달해 잘리면 자동으로 이어쓰기(최대 max_rounds회)."""
+    messages = [{"role": "user", "content": prompt}]
+    accumulated = ""
+
+    for _ in range(max_rounds):
+        msg = c.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=max_tokens,
+            messages=messages,
+        )
+        chunk = msg.content[0].text
+        accumulated += chunk
+
+        if msg.stop_reason != "max_tokens":
+            break
+
+        # 잘린 경우: 지금까지 쓴 내용을 assistant 턴으로 이어붙이고 계속 요청
+        messages.append({"role": "assistant", "content": chunk})
+        messages.append({
+            "role": "user",
+            "content": (
+                "HTML이 중간에 잘렸습니다. "
+                "이미 작성한 내용은 반복하지 말고, "
+                "잘린 부분부터 이어서 나머지 HTML을 완성해주세요. "
+                "모든 열린 태그를 올바르게 닫아주세요."
+            ),
+        })
+
+    return clean_html(accumulated)
+
+
 def parse_materials(text: str, source: str) -> dict:
     c = client()
     msg = c.messages.create(
@@ -105,7 +144,157 @@ def parse_materials(text: str, source: str) -> dict:
     return {"projects": [], "skills": [], "summary": text[:300]}
 
 
-# ── Pydantic models ──────────────────────────────────────────────────────────
+# ── Prompt builders ───────────────────────────────────────────────────────────
+
+TEMPLATES = {
+    "developer": {
+        "s1_tag": "기술스택 중심 (언어·프레임워크·인프라)",
+        "s3_title": "기술 역량 요약",
+        "s4_metric": "성능 개선율·코드 품질·배포 횟수 등 기술 지표",
+        "s5_title": "기술적 문제해결 역량",
+    },
+    "planner": {
+        "s1_tag": "기획 방법론 중심 (리서치·UX·지표 설계)",
+        "s3_title": "기획 역량 요약",
+        "s4_metric": "MAU·전환율·NPS·기획 범위 등 서비스 지표",
+        "s5_title": "서비스 기획 역량",
+    },
+    "designer": {
+        "s1_tag": "툴·결과물 중심 (Figma·브랜딩·UX 개선)",
+        "s3_title": "디자인 역량 요약",
+        "s4_metric": "사용성 개선·브랜드 임팩트·결과물 수 등 시각 지표",
+        "s5_title": "디자인 프로세스 역량",
+    },
+    "marketer": {
+        "s1_tag": "채널·지표 중심 (캠페인·ROAS·CTR·세그먼트)",
+        "s3_title": "채널 경험 요약",
+        "s4_metric": "CTR·ROAS·CAC·세그먼트 수 등 퍼포먼스 지표",
+        "s5_title": "데이터 기반 전략 역량",
+    },
+}
+
+COMMON_RULES = """
+공통 HTML 규칙:
+- 섹션: <section class="section">
+- 섹션 제목: <h2 class="section-title">제목</h2>
+- 항목 카드: <div class="item">
+- 기술 태그: <span class="tech-tag">태그</span>
+- 채용공고 키워드 강조(Track B만): <strong class="kw">키워드</strong>
+- 마크다운·코드블록 금지, 순수 HTML만 반환
+- <div class="portfolio-content"> 래퍼 없이 섹션만 반환
+"""
+
+
+def build_prompt_track_a(mat_json: str, interview_txt: str, tmpl: dict) -> str:
+    return f"""당신은 포트폴리오 작성 전문가입니다.
+아래 지원자 정보를 바탕으로 포트폴리오 HTML을 생성하세요.
+
+[지원자 정보]
+파싱된 포트폴리오: {mat_json}
+인터뷰 답변: {interview_txt or "(없음)"}
+
+[양식]
+{tmpl['s1_tag']}
+
+{COMMON_RULES}
+
+아래 3개 섹션만 생성하세요 (순서 유지):
+
+SECTION 1 — 자기소개 & 핵심 역량
+  <section class="section s1">: 강점 3가지를 자연스러운 소개 문장으로.
+
+SECTION 2 — 주요 프로젝트
+  <section class="section s2">: 프로젝트별 카드. 각 카드에 역할·기술스택·성과 포함.
+
+SECTION 3 — {tmpl['s3_title']}
+  <section class="section s3">: 보유 기술/역량을 카테고리별로. tech-tag 적극 활용.
+"""
+
+
+def build_prompt_track_b(mat_json: str, interview_txt: str,
+                          tmpl: dict, job_title: str, job_posting: str) -> str:
+    return f"""당신은 채용 전문가 겸 포트폴리오 작성 전문가입니다.
+아래 지원자 정보와 채용공고를 바탕으로 맞춤형 포트폴리오 HTML을 생성하세요.
+
+[지원자 정보]
+파싱된 포트폴리오: {mat_json}
+인터뷰 답변: {interview_txt or "(없음)"}
+
+[채용 정보]
+지원 직무: {job_title}
+채용공고: {job_posting[:2500]}
+
+[양식]
+{tmpl['s1_tag']}
+
+{COMMON_RULES}
+
+아래 5개 섹션만 생성하세요 (순서 유지):
+
+SECTION 1 — 지원자 프로필 & 직무 적합성
+  <section class="section s1">: 채용공고 요구사항에 맞춘 자기소개 + 핵심 강점 3가지.
+  채용공고 키워드를 <strong class="kw">로 강조.
+
+SECTION 2 — 주요 프로젝트
+  <section class="section s2">: 프로젝트별 카드. 채용공고 관련 내용 우선 배치.
+  채용공고 키워드를 <strong class="kw">로 강조.
+
+SECTION 3 — {tmpl['s3_title']}
+  <section class="section s3">: 보유 기술/역량 카테고리별 정리. tech-tag 활용.
+
+SECTION 4 — 채용공고 요구 역량 매핑
+  <section class="section s4">: 채용공고 요구 역량과 내 경험을 1:1 매핑 카드로.
+  형식: [요구역량] → [나의 경험 근거]
+
+SECTION 5 — {tmpl['s5_title']}
+  <section class="section s5">: 대표적인 문제→해결→결과 사례 2~3개.
+  {tmpl['s4_metric']} 포함.
+"""
+
+
+def build_prompt_second_call(mat_json: str, interview_txt: str, retro_txt: str,
+                              has_jd: bool, job_title: str = "", job_posting: str = "") -> str:
+    jd_block = ""
+    if has_jd:
+        jd_block = f"[채용공고] 지원직무: {job_title}\n{job_posting[:1500]}"
+
+    if has_jd:
+        sections = f"""
+SECTION 6 — 회고 & 성장 스토리
+  <section class="section s6">: 프로젝트별 회고를 자연스러운 문장으로.
+  1) 핵심 인사이트  2) 파악된 업무 스타일  3) 다음 프로젝트 적용 계획.
+
+SECTION 7 — 핵심 성과 지표 요약
+  <section class="section s7">: <table> 태그로 5~8행 구성.
+  컬럼: 항목 | 수치 | 직무 연계 포인트.
+
+SECTION 8 — 미보유 역량 & 학습 계획
+  <section class="section s8">: 채용공고 기준 미보유 역량 2~3개와 구체적 보완 방법.
+"""
+    else:
+        sections = """
+SECTION 4 — 회고 & 성장 스토리
+  <section class="section s4">: 프로젝트별 회고를 자연스러운 문장으로.
+  1) 핵심 인사이트  2) 파악된 업무 스타일  3) 다음 프로젝트 적용 계획.
+"""
+
+    return f"""아래 내용을 바탕으로 추가 섹션만 HTML로 생성하세요.
+순수 HTML만 반환, 코드블록 금지.
+
+[지원자 정보]
+{mat_json}
+인터뷰 답변: {interview_txt or "(없음)"}
+회고: {retro_txt or "(없음)"}
+{jd_block}
+
+{COMMON_RULES}
+
+아래 섹션만 생성하세요 (다른 내용 절대 추가 금지):
+{sections}
+"""
+
+
+# ── Pydantic models ───────────────────────────────────────────────────────────
 
 class UrlReq(BaseModel):
     url: str
@@ -120,16 +309,16 @@ class InterviewAnswerReq(BaseModel):
 class RetroReq(BaseModel):
     session_id: str
     retro_type: str
-    retro_data: list  # 프로젝트별 회고 리스트 [{"project":"...", "Keep":"...", ...}, ...]
+    retro_data: list
 
 class GenerateReq(BaseModel):
     session_id: str
-    job_title: str
-    job_posting: str
-    portfolio_type: str  # developer | planner | designer | marketer
+    portfolio_type: str       # developer | planner | designer | marketer
+    job_title: str = ""
+    job_posting: str = ""
 
 
-# ── Static files ─────────────────────────────────────────────────────────────
+# ── Static files ──────────────────────────────────────────────────────────────
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -194,7 +383,7 @@ def retro_save(req: RetroReq):
         raise HTTPException(404, "세션을 찾을 수 없습니다.")
     sessions[req.session_id]["retro"] = {
         "type": req.retro_type,
-        "data": req.retro_data  # list of per-project retro dicts
+        "data": req.retro_data,
     }
     return {"ok": True}
 
@@ -207,6 +396,7 @@ def interview_start(req: InterviewStartReq):
         raise HTTPException(404, "세션을 찾을 수 없습니다.")
     sess = sessions[req.session_id]
     summary = json.dumps([m["parsed"] for m in sess["materials"]], ensure_ascii=False)
+
     c = client()
     msg = c.messages.create(
         model="claude-sonnet-4-6",
@@ -266,34 +456,6 @@ def scrape_url(req: UrlReq):
 
 # ── Generate portfolio ────────────────────────────────────────────────────────
 
-TEMPLATES = {
-    "developer": {
-        "s1_tag": "기술스택 중심 (언어·프레임워크·인프라)",
-        "s3_title": "기술 역량 요약",
-        "s4_metric": "성능 개선율·코드 품질·배포 횟수 등 기술 지표",
-        "s5_title": "기술적 문제해결 역량",
-    },
-    "planner": {
-        "s1_tag": "기획 방법론 중심 (리서치·UX·지표 설계)",
-        "s3_title": "기획 역량 요약",
-        "s4_metric": "MAU·전환율·NPS·기획 범위 등 서비스 지표",
-        "s5_title": "서비스 기획 역량",
-    },
-    "designer": {
-        "s1_tag": "툴·결과물 중심 (Figma·브랜딩·UX 개선)",
-        "s3_title": "디자인 역량 요약",
-        "s4_metric": "사용성 개선·브랜드 임팩트·결과물 수 등 시각 지표",
-        "s5_title": "디자인 프로세스 역량",
-    },
-    "marketer": {
-        "s1_tag": "채널·지표 중심 (캠페인·ROAS·CTR·세그먼트)",
-        "s3_title": "채널 경험 요약",
-        "s4_metric": "CTR·ROAS·CAC·세그먼트 수 등 퍼포먼스 지표",
-        "s5_title": "데이터 기반 전략 역량",
-    },
-}
-
-
 @app.post("/generate")
 def generate(req: GenerateReq):
     if req.session_id not in sessions:
@@ -306,7 +468,6 @@ def generate(req: GenerateReq):
     for i, (q, a) in enumerate(zip(sess.get("questions", []), sess.get("answers", [])), 1):
         interview_txt += f"Q{i}. {q}\nA. {a}\n\n"
 
-    # 프로젝트별 회고 포맷
     retro_txt = ""
     if sess.get("retro"):
         r = sess["retro"]
@@ -327,112 +488,38 @@ def generate(req: GenerateReq):
                         retro_txt += f"  {k}: {val}\n"
 
     tmpl = TEMPLATES.get(req.portfolio_type, TEMPLATES["developer"])
+    has_jd = bool(req.job_title and req.job_posting and req.job_posting.strip())
 
-    prompt = f"""당신은 채용 전문가 겸 포트폴리오 작성 전문가입니다.
-아래 지원자 정보와 채용공고를 바탕으로, 지정된 8개 섹션 구조에 맞춰 포트폴리오 HTML을 생성하세요.
-
-[지원자 정보]
-파싱된 포트폴리오: {mat_json}
-인터뷰 답변: {interview_txt or "(없음)"}
-회고: {retro_txt or "(없음)"}
-
-[채용 정보]
-지원 직무: {req.job_title}
-채용공고: {req.job_posting[:3500]}
-
-[직무 유형별 설정]
-스킬 태그 방향: {tmpl["s1_tag"]}
-경험 요약 섹션명: {tmpl["s3_title"]}
-성과 지표 방향: {tmpl["s4_metric"]}
-역량 섹션명: {tmpl["s5_title"]}
-
-[출력 섹션 구조 — 반드시 아래 8개 섹션을 순서대로 모두 포함]
-
-SECTION 1 — 지원자 핵심 요약 카드
-- <section class="section s1">
-- 포지셔닝 한 줄 문장 (지원자의 강점을 직무에 맞게 재해석)
-- 지원 직무명
-- 핵심 스킬 태그: {tmpl["s1_tag"]} 기준으로 <span class="tech-tag">태그</span> 나열
-
-SECTION 2 — 채용공고 Fit 분석
-- <section class="section s2">
-- 채용공고에서 요구역량 5~8개 추출
-- 각 요구역량 vs 지원자 경험 1:1 매핑 테이블
-- 직접 경험: ✅ 직접 경험 / 간접 경험: 🔶 간접 경험 / 미경험: ⚠️ 학습 중
-- 테이블 하단에 Fit 종합 코멘트 한 줄
-
-SECTION 3 — {tmpl["s3_title"]}
-- <section class="section s3">
-- 서술형 요약 2~3줄 (지원자 전체 경험을 직무 관점으로 재해석)
-- 핵심 역량 불릿 4~5개 (역량명: 경험 설명)
-- 도구·툴 나열
-
-SECTION 4 — 주요 프로젝트 카드 (프로젝트 수만큼 반복)
-- <section class="section s4">
-- 각 프로젝트마다 <div class="item"> 카드 1개
-- 카드 내 필수 구성:
-  1) 프로젝트명 + 부제목
-  2) 📌 프로젝트 배경 & 목적 (문제의식과 목표, 3~4줄)
-  3) 📌 담당 범위 & 기여도 (역할 / 기여도 % / 팀 구성 / 기간)
-  4) 📌 핵심 과정 & 의사결정 (전체 흐름 단계 → 단계 / 왜 이 방법을 선택했는가)
-  5) 📌 어려웠던 점 & 해결 (문제 상황 → 극복 방법)
-  6) 📌 핵심 성과 ({tmpl["s4_metric"]} 포함, 수치 중심 3개 이상)
-  7) 📌 사용 기술 (<span class="tech-tag">태그</span> 나열)
-
-SECTION 5 — {tmpl["s5_title"]}
-- <section class="section s5">
-- 직무 연계 총평 2~3줄
-- 역량별 불릿 (역량명: 경험 설명 — 직무 연계 의미)
-
-SECTION 6 — 회고 & 성장 스토리
-- <section class="section s6">
-- 회고 데이터가 있으면 프로젝트별로 자연스러운 문장으로 재구성, 없으면 인터뷰 답변 기반으로 작성
-- 3개 파트로 구성:
-  1) 이 경험에서 얻은 인사이트 (2~3줄)
-  2) 나의 업무 스타일 (1~2줄)
-  3) 다음 프로젝트에서의 적용 계획 (1~2줄)
-
-SECTION 7 — 핵심 성과 지표 요약
-- <section class="section s7">
-- 전체 프로젝트 성과를 하나의 테이블로 정리
-- 컬럼: 항목 | 수치/성과 | 직무 연계 의미
-- 5~8개 행
-
-SECTION 8 — 미보유 역량 & 학습 계획
-- <section class="section s8">
-- 채용공고 대비 미보유/부족 역량 2~3개 솔직하게 명시
-- 각 항목에 현재 보완 방법 또는 학습 계획 함께 작성
-
-[작성 지침]
-1. 채용공고의 핵심 키워드는 반드시 <strong class="kw">키워드</strong>로 강조하세요.
-2. 모든 수치와 경험은 지원자 정보에 실제로 있는 내용만 사용하세요. 없으면 생략하세요.
-3. 마크다운·코드블록 없이 순수 HTML 콘텐츠만 반환하세요 (html/head/body 태그 없이).
-4. 전체를 <div class="portfolio-content"></div>로 감싸세요.
-5. 섹션 제목은 <h2 class="section-title">으로, 항목 카드는 <div class="item">으로 작성하세요.
-6. 기술 태그는 <span class="tech-tag">태그명</span>을 사용하세요.
-7. 8개 섹션을 순서대로 빠짐없이 모두 생성하세요.
-"""
+    # ── 1차 호출: 핵심 섹션 ──────────────────────────────────────────────────
+    if has_jd:
+        prompt1 = build_prompt_track_b(
+            mat_json, interview_txt, tmpl, req.job_title, req.job_posting
+        )
+    else:
+        prompt1 = build_prompt_track_a(mat_json, interview_txt, tmpl)
 
     c = client()
-    msg = c.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=6000,
-        messages=[{"role": "user", "content": prompt}],
+
+    # 1차 호출: 핵심 섹션 (최대 8192토큰, 잘리면 자동 이어쓰기)
+    html1 = call_claude(c, prompt1)
+
+    # 2차 호출: 회고·지표·학습계획 섹션 (최대 8192토큰, 잘리면 자동 이어쓰기)
+    prompt2 = build_prompt_second_call(
+        mat_json, interview_txt, retro_txt,
+        has_jd, req.job_title, req.job_posting,
     )
-    html = msg.content[0].text.strip()
+    html2 = call_claude(c, prompt2)
 
-    if "```" in html:
-        m = re.search(r"```(?:html)?\s*([\s\S]*?)```", html)
-        if m:
-            html = m.group(1).strip()
-
-    if '<div class="portfolio-content">' not in html:
-        html = f'<div class="portfolio-content">{html}</div>'
+    # ── 결합 ────────────────────────────────────────────────────────────────
+    combined = html1 + "\n" + html2
+    if '<div class="portfolio-content">' not in combined:
+        combined = f'<div class="portfolio-content">{combined}</div>'
 
     return {
-        "portfolio_html": html,
+        "portfolio_html": combined,
         "job_title": req.job_title,
         "portfolio_type": req.portfolio_type,
+        "track": "B" if has_jd else "A",
     }
 
 

@@ -32,7 +32,6 @@ header{background:#fff;border-bottom:1px solid var(--g200);padding:14px 24px;dis
 .si.done .sl{color:var(--p)}
 
 main{max-width:780px;margin:28px auto;padding:0 18px}
-
 .scard{background:#fff;border-radius:16px;border:1px solid var(--g200);overflow:hidden;margin-bottom:14px;animation:slideIn .35s ease}
 .scard.hidden{display:none}
 @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -45,8 +44,7 @@ main{max-width:780px;margin:28px auto;padding:0 18px}
 .tabs{display:flex;gap:3px;background:var(--g100);border-radius:9px;padding:3px;margin-bottom:18px}
 .tab{flex:1;padding:7px 14px;border:none;background:none;border-radius:7px;font-size:13px;font-weight:500;color:var(--g500);cursor:pointer;transition:all .2s}
 .tab.active{background:#fff;color:var(--g900);box-shadow:0 1px 3px rgba(0,0,0,.09)}
-.tc{display:none}
-.tc.active{display:block}
+.tc{display:none}.tc.active{display:block}
 
 .uzone{border:2px dashed var(--g300);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s}
 .uzone:hover,.uzone.drag-over{border-color:var(--p);background:var(--pl)}
@@ -66,37 +64,28 @@ textarea{resize:vertical;min-height:90px}
 
 .btn{padding:9px 18px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-p{background:var(--p);color:#fff}
-.btn-p:not(:disabled):hover{background:var(--pd)}
-.btn-s{background:var(--g100);color:var(--g700)}
-.btn-s:hover{background:var(--g200)}
-.btn-o{background:#fff;color:var(--p);border:1.5px solid var(--p)}
-.btn-o:hover{background:var(--pl)}
+.btn-p{background:var(--p);color:#fff}.btn-p:not(:disabled):hover{background:var(--pd)}
+.btn-s{background:var(--g100);color:var(--g700)}.btn-s:hover{background:var(--g200)}
+.btn-o{background:#fff;color:var(--p);border:1.5px solid var(--p)}.btn-o:hover{background:var(--pl)}
 .btn-sm{padding:7px 13px;font-size:12px}
+.btn-xs{padding:5px 10px;font-size:11px;border-radius:6px}
 
 .pcard{background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:14px;margin-bottom:14px}
 .pcard h4{font-size:12px;font-weight:700;color:var(--g700);margin-bottom:8px}
 .tags{display:flex;flex-wrap:wrap;gap:5px}
 .tag{background:var(--pl);color:var(--p);border-radius:5px;padding:2px 9px;font-size:11px;font-weight:500}
 
-/* ── Retro ── */
 .rtabs{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
 .rtab{padding:7px 16px;border:1.5px solid var(--g300);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--g700)}
 .rtab.active{border-color:var(--p);background:var(--pl);color:var(--p)}
-.rform{display:none}
-.rform.active{display:block}
-
-/* 프로젝트별 회고 카드 */
 .retro-project-card{border:1px solid var(--g200);border-radius:12px;padding:18px;margin-bottom:18px;background:var(--g50)}
 .retro-project-title{font-size:13px;font-weight:700;color:var(--p);margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:7px}
 .retro-project-badge{background:var(--p);color:#fff;border-radius:12px;padding:2px 9px;font-size:11px;font-weight:700}
 
-/* ── Chat ── */
 .chat-wrap{border:1px solid var(--g200);border-radius:12px;overflow:hidden}
 .chat-msgs{min-height:180px;max-height:380px;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;background:var(--g50);scroll-behavior:smooth}
 .cmsg{max-width:82%}
-.cmsg.ai{align-self:flex-start}
-.cmsg.user{align-self:flex-end}
+.cmsg.ai{align-self:flex-start}.cmsg.user{align-self:flex-end}
 .clabel{font-size:10px;color:var(--g400);margin-bottom:3px;font-weight:700}
 .cbubble{padding:11px 15px;border-radius:12px;font-size:13px;line-height:1.6}
 .cmsg.ai .cbubble{background:#fff;border:1px solid var(--g200);border-radius:4px 12px 12px 12px;color:var(--g900)}
@@ -110,7 +99,6 @@ textarea{resize:vertical;min-height:90px}
 .chat-in textarea{flex:1;min-height:56px;max-height:110px;resize:none;margin:0}
 .qbadge{font-size:11px;color:var(--g500);background:var(--g100);padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px}
 
-/* ── Portfolio type grid ── */
 .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .tcard{border:2px solid var(--g200);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;text-align:left;background:#fff}
 .tcard:hover{border-color:var(--p);background:var(--pl)}
@@ -119,10 +107,18 @@ textarea{resize:vertical;min-height:90px}
 .tcard h3{font-size:14px;font-weight:700;margin-bottom:3px}
 .tcard p{font-size:11px;color:var(--g500)}
 
-/* ── Job posting tabs ── */
 .jtabs{display:flex;gap:3px;background:var(--g100);border-radius:8px;padding:3px;margin-bottom:14px}
 .jtab{flex:1;padding:7px;border:none;background:none;border-radius:6px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .2s}
 .jtab.active{background:#fff;color:var(--g900);box-shadow:0 1px 2px rgba(0,0,0,.07)}
+
+/* JD 선택 옵션 박스 */
+.jd-option{border:1px solid var(--g200);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--g50)}
+.jd-option p{font-size:12px;color:var(--g500);margin-top:4px;line-height:1.5}
+
+/* 트랙 뱃지 */
+.track-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+.track-a{background:#ECFDF5;color:#065F46;border:1px solid #6EE7B7}
+.track-b{background:var(--pl);color:var(--p);border:1px solid #A5B4FC}
 
 #gen-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
 #gen-overlay.show{display:flex}
@@ -134,9 +130,7 @@ textarea{resize:vertical;min-height:90px}
 
 .toast{position:fixed;bottom:22px;right:22px;background:var(--g900);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;max-width:280px}
 .toast.show{opacity:1;transform:translateY(0)}
-.toast.err{background:var(--err)}
-.toast.ok{background:var(--ok)}
-
+.toast.err{background:var(--err)}.toast.ok{background:var(--ok)}
 .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
 
 #result-page{display:none}
@@ -145,34 +139,43 @@ textarea{resize:vertical;min-height:90px}
 .rh h2{font-size:17px;font-weight:700}
 .rh p{font-size:12px;color:var(--g500);margin-top:2px}
 .ract{display:flex;gap:7px;flex-wrap:wrap}
-.pw{max-width:780px;margin:28px auto;padding:0 18px 60px}
-.pbox{background:#fff;border-radius:16px;border:1px solid var(--g200);padding:40px}
+.pw{max-width:820px;margin:28px auto;padding:0 18px 60px}
+.pbox{background:#fff;border-radius:16px;border:1px solid var(--g200);padding:36px}
 
-.pbox .portfolio-content .section{margin-bottom:30px}
+/* ── 포트폴리오 결과물 스타일 ── */
+.pbox .portfolio-content .section{margin-bottom:32px}
 .pbox .portfolio-content .section:last-child{margin-bottom:0}
-.pbox .portfolio-content .section-title{font-size:17px;font-weight:800;color:var(--g900);padding-bottom:9px;border-bottom:2.5px solid var(--p);margin-bottom:14px;display:block}
-.pbox .portfolio-content .item{background:var(--g50);border-radius:10px;padding:15px;margin-bottom:9px;border:1px solid var(--g200)}
-.pbox .portfolio-content h3{font-size:14px;font-weight:700;margin-bottom:6px}
-.pbox .portfolio-content p{font-size:13px;line-height:1.75;color:var(--g700)}
-.pbox .portfolio-content ul{padding-left:18px;margin-top:6px}
-.pbox .portfolio-content ul li{font-size:13px;line-height:1.8;color:var(--g700)}
+.pbox .portfolio-content .section-title{font-size:16px;font-weight:800;color:var(--g900);padding-bottom:10px;border-bottom:2.5px solid var(--p);margin-bottom:16px;display:block}
+.pbox .portfolio-content .item{background:var(--g50);border-radius:12px;padding:20px;margin-bottom:12px;border:1px solid var(--g200);position:relative}
+.pbox .portfolio-content .proj-card{border-left:4px solid var(--p)}
+.pbox .portfolio-content h3{font-size:15px;font-weight:700;margin-bottom:8px;color:var(--g900)}
+.pbox .portfolio-content h4{font-size:13px;font-weight:700;color:var(--p);margin:14px 0 6px}
+.pbox .portfolio-content p{font-size:13px;line-height:1.8;color:var(--g700);margin-bottom:6px}
+.pbox .portfolio-content ul{padding-left:18px;margin-top:6px;margin-bottom:6px}
+.pbox .portfolio-content ul li{font-size:13px;line-height:1.85;color:var(--g700)}
 .pbox .portfolio-content table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-.pbox .portfolio-content th{background:var(--pl);color:var(--p);padding:8px 12px;text-align:left;font-weight:700;border:1px solid var(--g200)}
-.pbox .portfolio-content td{padding:8px 12px;border:1px solid var(--g200);color:var(--g700);line-height:1.6}
-.pbox .portfolio-content .kw{color:var(--p);font-weight:700;background:var(--pl);padding:1px 4px;border-radius:3px}
-.pbox .portfolio-content .tech-tag{display:inline-block;background:var(--g100);color:var(--g700);border-radius:4px;padding:2px 8px;font-size:11px;margin:2px;font-weight:600}
+.pbox .portfolio-content th{background:var(--pl);color:var(--p);padding:9px 13px;text-align:left;font-weight:700;border:1px solid var(--g200)}
+.pbox .portfolio-content td{padding:9px 13px;border:1px solid var(--g200);color:var(--g700);line-height:1.65}
+.pbox .portfolio-content .kw{color:var(--p);font-weight:700;background:var(--pl);padding:1px 5px;border-radius:3px}
+.pbox .portfolio-content .tech-tag{display:inline-block;background:var(--g100);color:var(--g700);border-radius:5px;padding:3px 9px;font-size:11px;margin:2px;font-weight:600}
+.pbox .portfolio-content .kw-tag{display:inline-block;background:#F0FDF4;color:#16A34A;border-radius:20px;padding:3px 10px;font-size:11px;margin:2px;font-weight:600;border:1px solid #86EFAC}
+
+/* 카드별 복사 버튼 */
+.copy-card-btn{position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--g300);background:#fff;font-size:11px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .2s}
+.copy-card-btn:hover{border-color:var(--p);color:var(--p)}
 
 .ok-banner{background:#ECFDF5;border:1px solid #6EE7B7;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;font-weight:600;color:#065F46}
 
 @media print{
   header,#prog-bar,.scard,.rh{display:none!important}
   .pw{margin:0;padding:0;max-width:100%}
-  .pbox{border:none;border-radius:0;box-shadow:none}
+  .pbox{border:none;border-radius:0}
+  .copy-card-btn{display:none}
 }
 @media(max-width:560px){
   .tgrid{grid-template-columns:1fr}
   main,.pw{padding:0 12px}
-  .pbox{padding:22px}
+  .pbox{padding:18px}
   .rh{flex-direction:column;align-items:flex-start}
 }
 </style>
@@ -183,7 +186,7 @@ textarea{resize:vertical;min-height:90px}
   <div class="logo">P</div>
   <div class="hd">
     <h1>AI 포트폴리오 생성기</h1>
-    <p>채용공고 맞춤형 포트폴리오를 AI가 자동으로 생성합니다</p>
+    <p>PPT/PDF 업로드 → 경험 정제 → 포트폴리오 완성</p>
   </div>
 </header>
 
@@ -192,7 +195,7 @@ textarea{resize:vertical;min-height:90px}
     <div class="si active" id="p1"><div class="sc">1</div><div class="sl">재료 업로드</div></div>
     <div class="si" id="p2"><div class="sc">2</div><div class="sl">회고&amp;인터뷰</div></div>
     <div class="si" id="p3"><div class="sc">3</div><div class="sl">양식 선택</div></div>
-    <div class="si" id="p4"><div class="sc">4</div><div class="sl">채용공고 맵핑</div></div>
+    <div class="si" id="p4"><div class="sc">4</div><div class="sl">포트폴리오 생성</div></div>
   </div>
 </div>
 
@@ -206,7 +209,6 @@ textarea{resize:vertical;min-height:90px}
         <button class="tab active" onclick="uTab('file',this)">📁 파일 업로드</button>
         <button class="tab" onclick="uTab('notion',this)">🔗 노션 링크</button>
       </div>
-
       <div class="tc active" id="tc-file">
         <div class="uzone" id="dzone" onclick="document.getElementById('fi').click()">
           <div class="icon">📂</div>
@@ -221,7 +223,6 @@ textarea{resize:vertical;min-height:90px}
           </button>
         </div>
       </div>
-
       <div class="tc" id="tc-notion">
         <div class="ig"><label>노션 페이지 URL</label>
           <input type="url" id="nurl" placeholder="https://www.notion.so/your-page-...">
@@ -232,9 +233,8 @@ textarea{resize:vertical;min-height:90px}
           </button>
         </div>
       </div>
-
       <div id="parsed-ok" style="display:none;margin-top:18px">
-        <div class="ok-banner">✅ 포트폴리오 분석이 완료되었습니다. 아래에서 내용을 확인하세요.</div>
+        <div class="ok-banner">✅ 포트폴리오 분석 완료! AI가 아래 내용을 추출했습니다.</div>
         <div id="parsed-out"></div>
       </div>
     </div>
@@ -242,29 +242,22 @@ textarea{resize:vertical;min-height:90px}
 
   <!-- ── STEP 2 ── -->
   <div class="scard hidden" id="s2">
-    <div class="sh"><div class="sn">2</div><div><h2>회고 입력 &amp; AI 인터뷰</h2><p>프로젝트별 회고를 작성하고 AI의 꼬리질문에 답변하세요</p></div></div>
+    <div class="sh"><div class="sn">2</div><div><h2>회고 입력 &amp; AI 인터뷰</h2><p>프로젝트별 회고를 작성하고 AI 꼬리질문에 답변하세요</p></div></div>
     <div class="sb">
-
-      <!-- 2a: Retro -->
       <div id="ss-retro">
         <h3 style="font-size:14px;font-weight:700;margin-bottom:6px">📝 회고 방식 선택</h3>
-        <p style="font-size:12px;color:var(--g500);margin-bottom:14px">업로드한 프로젝트별로 회고를 작성합니다</p>
+        <p style="font-size:12px;color:var(--g500);margin-bottom:14px">업로드한 프로젝트별로 각각 작성합니다</p>
         <div class="rtabs">
           <button class="rtab" onclick="selRetro('KPT',this)">KPT</button>
           <button class="rtab" onclick="selRetro('4F',this)">4F</button>
           <button class="rtab" onclick="selRetro('4L',this)">4L</button>
         </div>
-
-        <!-- 회고 폼이 동적으로 렌더링되는 영역 -->
         <div id="retro-forms-wrap"></div>
-
         <div style="display:flex;gap:9px;margin-top:6px;flex-wrap:wrap">
           <button class="btn btn-p" id="retro-go" onclick="saveRetroAndInterview()" style="display:none">저장 후 AI 인터뷰 시작 →</button>
           <button class="btn btn-s" onclick="skipRetro()">회고 건너뛰기 →</button>
         </div>
       </div>
-
-      <!-- 2b: Interview -->
       <div id="ss-interview" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
           <h3 style="font-size:14px;font-weight:700">🤖 AI 심층 인터뷰</h3>
@@ -283,7 +276,7 @@ textarea{resize:vertical;min-height:90px}
 
   <!-- ── STEP 3 ── -->
   <div class="scard hidden" id="s3">
-    <div class="sh"><div class="sn">3</div><div><h2>포트폴리오 양식 선택</h2><p>지원 직군에 맞는 포트폴리오 형식을 선택하세요</p></div></div>
+    <div class="sh"><div class="sn">3</div><div><h2>포트폴리오 양식 선택</h2><p>지원 직군에 맞는 형식을 선택하세요</p></div></div>
     <div class="sb">
       <div class="tgrid">
         <div class="tcard" onclick="selType('developer',this)"><div class="ticon">💻</div><h3>개발자</h3><p>기술스택 · 프로젝트 · 성과 중심</p></div>
@@ -296,42 +289,57 @@ textarea{resize:vertical;min-height:90px}
 
   <!-- ── STEP 4 ── -->
   <div class="scard hidden" id="s4">
-    <div class="sh"><div class="sn">4</div><div><h2>채용공고 맵핑</h2><p>지원할 채용공고를 입력하면 맞춤형 포트폴리오를 생성합니다</p></div></div>
+    <div class="sh"><div class="sn">4</div><div><h2>포트폴리오 생성</h2><p>바로 생성하거나 채용공고를 추가해 맞춤형으로 만드세요</p></div></div>
     <div class="sb">
-      <div class="ig"><label>지원 직무명 <span style="color:var(--err)">*</span></label>
-        <input type="text" id="jobt" placeholder="예: 백엔드 개발자, UX 기획자, 브랜드 마케터">
+
+      <!-- TRACK A: 경험 정제만 -->
+      <div class="jd-option" id="opt-a" style="border:2px solid var(--ok);background:#F0FDF4">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#065F46">✅ 경험 정제 카드 생성 (기본)</div>
+            <p>채용공고 없이 내 경험을 포트폴리오에 바로 쓸 수 있는 문장으로 정제합니다.<br>프로젝트별 한 줄 요약 · 문제해결 · 성과 · 키워드 태그 포함.</p>
+          </div>
+          <button class="btn btn-sm" style="background:#10B981;color:#fff;flex-shrink:0" onclick="doGenerate(false)">
+            <span id="genbtn-a-t">바로 생성 →</span>
+          </button>
+        </div>
       </div>
 
-      <div class="jtabs">
-        <button class="jtab active" onclick="jTab('url',this)">🔗 URL로 입력</button>
-        <button class="jtab" onclick="jTab('text',this)">✏️ 직접 입력</button>
-      </div>
-
-      <div id="jt-url">
-        <div class="ig"><label>채용공고 URL</label>
-          <div style="display:flex;gap:7px">
-            <input type="url" id="joburl" placeholder="https://..." style="flex:1">
-            <button class="btn btn-s btn-sm" id="scrbtn" onclick="scrapeJob()">불러오기</button>
+      <!-- TRACK B: 채용공고 맞춤 -->
+      <div class="jd-option" id="opt-b">
+        <div style="font-size:13px;font-weight:700;color:var(--g900);margin-bottom:8px">🎯 채용공고 맞춤형 생성 (선택)</div>
+        <p style="margin-bottom:14px">채용공고를 입력하면 키워드 매핑 + Fit 분석이 추가됩니다.</p>
+        <div class="ig"><label>지원 직무명</label>
+          <input type="text" id="jobt" placeholder="예: 퍼포먼스 마케터, 백엔드 개발자">
+        </div>
+        <div class="jtabs">
+          <button class="jtab active" onclick="jTab('url',this)">🔗 URL로 입력</button>
+          <button class="jtab" onclick="jTab('text',this)">✏️ 직접 입력</button>
+        </div>
+        <div id="jt-url">
+          <div class="ig"><label>채용공고 URL</label>
+            <div style="display:flex;gap:7px">
+              <input type="url" id="joburl" placeholder="https://..." style="flex:1">
+              <button class="btn btn-s btn-sm" id="scrbtn" onclick="scrapeJob()">불러오기</button>
+            </div>
+          </div>
+          <div id="job-preview" style="display:none">
+            <div class="pcard">
+              <h4>📄 채용공고 미리보기</h4>
+              <p id="job-prev-txt" style="font-size:12px;color:var(--g500);max-height:140px;overflow-y:auto;margin-top:6px;line-height:1.65;white-space:pre-wrap"></p>
+            </div>
           </div>
         </div>
-        <div id="job-preview" style="display:none">
-          <div class="pcard">
-            <h4>📄 채용공고 미리보기</h4>
-            <p id="job-prev-txt" style="font-size:12px;color:var(--g500);max-height:160px;overflow-y:auto;margin-top:6px;line-height:1.65;white-space:pre-wrap"></p>
+        <div id="jt-text" style="display:none">
+          <div class="ig"><label>채용공고 텍스트</label>
+            <textarea id="jobtxt" placeholder="채용공고 내용을 붙여넣어주세요..." style="min-height:160px"></textarea>
           </div>
         </div>
-      </div>
-
-      <div id="jt-text" style="display:none">
-        <div class="ig"><label>채용공고 텍스트</label>
-          <textarea id="jobtxt" placeholder="채용공고 내용을 붙여넣어주세요..." style="min-height:180px"></textarea>
+        <div style="margin-top:14px;text-align:right">
+          <button class="btn btn-p" onclick="doGenerate(true)">
+            <span id="genbtn-b-t">✨ 맞춤형으로 생성</span>
+          </button>
         </div>
-      </div>
-
-      <div style="margin-top:18px;text-align:right">
-        <button class="btn btn-p" id="genbtn" onclick="doGenerate()" style="padding:12px 26px;font-size:14px">
-          ✨ 맞춤형 포트폴리오 생성
-        </button>
       </div>
     </div>
   </div>
@@ -341,22 +349,24 @@ textarea{resize:vertical;min-height:90px}
 <!-- ── Result ── -->
 <div id="result-page">
   <div class="rh">
-    <div><h2>🎉 포트폴리오 생성 완료</h2><p id="rsub">채용공고에 맞춤화된 포트폴리오입니다</p></div>
+    <div>
+      <h2>🎉 포트폴리오 생성 완료</h2>
+      <p id="rsub"></p>
+    </div>
     <div class="ract">
       <button class="btn btn-s btn-sm" onclick="startOver()">↩ 처음부터</button>
-      <button class="btn btn-o btn-sm" onclick="copyPF()">📋 텍스트 복사</button>
+      <button class="btn btn-o btn-sm" onclick="copyAll()">📋 전체 복사</button>
       <button class="btn btn-p btn-sm" onclick="window.print()">🖨️ PDF 저장</button>
     </div>
   </div>
   <div class="pw"><div class="pbox" id="pf-out"></div></div>
 </div>
 
-<!-- ── Generate overlay ── -->
 <div id="gen-overlay">
   <div class="gen-box">
     <div class="big-spin"></div>
     <h3>포트폴리오 생성 중…</h3>
-    <p>AI가 채용공고를 분석하고<br>맞춤형 포트폴리오를 작성하고 있습니다.<br><br>약 10~20초 소요됩니다.</p>
+    <p>AI가 경험을 분석하고<br>포트폴리오 문장을 작성하고 있습니다.<br><br>약 15~25초 소요됩니다.</p>
   </div>
 </div>
 
@@ -365,8 +375,27 @@ textarea{resize:vertical;min-height:90px}
 <script>
 const S = {
   sid: null, step: 1, retroType: null, pfType: null,
-  jobPosting: '', files: [],
-  projects: []  // 업로드된 프로젝트 목록 저장
+  jobPosting: '', files: [], projects: []
+};
+
+const RETRO_FIELDS = {
+  KPT: [
+    {id:'Keep',    label:'Keep · 만족스러운 점',       placeholder:'다음에도 유지하고 싶은 것들...'},
+    {id:'Problem', label:'Problem · 아쉬운 점',        placeholder:'개선이 필요했던 부분...'},
+    {id:'Try',     label:'Try · 해결 방안',            placeholder:'다음에 시도할 행동...'},
+  ],
+  '4F': [
+    {id:'Facts',    label:'Facts · 어떤 일이 있었는가',  placeholder:'사실 중심으로...'},
+    {id:'Feelings', label:'Feelings · 어떤 감정을 느꼈는가', placeholder:'느꼈던 감정...'},
+    {id:'Findings', label:'Findings · 어떤 인사이트를 얻었는가', placeholder:'인사이트·교훈...'},
+    {id:'Future',   label:'Future · 앞으로 어떻게 적용할 것인가', placeholder:'적용 계획...'},
+  ],
+  '4L': [
+    {id:'Liked',      label:'Liked · 즐거웠던 부분',        placeholder:'흥미롭고 즐거웠던 것...'},
+    {id:'Learned',    label:'Learned · 새롭게 배운 것',     placeholder:'습득한 기술/지식...'},
+    {id:'Lacked',     label:'Lacked · 역량의 한계',         placeholder:'부족했던 부분...'},
+    {id:'Longed for', label:'Longed for · 필요했던 것',     placeholder:'더 필요했던 것...'},
+  ],
 };
 
 // ── Tab helpers ──────────────────────────────────────────────────────────────
@@ -376,7 +405,6 @@ function uTab(id, el) {
   document.querySelectorAll('#s1 .tc').forEach(t => t.classList.remove('active'));
   document.getElementById('tc-' + id).classList.add('active');
 }
-
 function jTab(id, el) {
   document.querySelectorAll('.jtab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
@@ -392,22 +420,15 @@ dz.addEventListener('drop', e => {
   e.preventDefault(); dz.classList.remove('drag-over');
   addFiles(Array.from(e.dataTransfer.files).filter(f => /\.(pptx?|pdf)$/i.test(f.name)));
 });
-
 function addFiles(files) {
-  Array.from(files).forEach(f => {
-    if (!S.files.find(x => x.name === f.name)) S.files.push(f);
-  });
+  Array.from(files).forEach(f => { if (!S.files.find(x => x.name === f.name)) S.files.push(f); });
   renderFiles();
 }
-
 function rmFile(name) {
-  S.files = S.files.filter(f => f.name !== name);
-  renderFiles();
+  S.files = S.files.filter(f => f.name !== name); renderFiles();
 }
-
 function renderFiles() {
-  const lst = document.getElementById('flist');
-  lst.innerHTML = S.files.map(f =>
+  document.getElementById('flist').innerHTML = S.files.map(f =>
     `<div class="fchip">📄 ${esc(f.name)}<button onclick="rmFile('${esc(f.name)}')" title="제거">×</button></div>`
   ).join('');
   document.getElementById('ubtn').disabled = S.files.length === 0;
@@ -420,9 +441,7 @@ async function doUploadFile() {
   S.files.forEach(f => fd.append('files', f));
   try {
     const d = await api('/upload/file', fd, true);
-    S.sid = d.session_id;
-    showParsed(d.parsed);
-    showStep(2);
+    S.sid = d.session_id; showParsed(d.parsed); showStep(2);
   } catch (e) { toast(e.message, 'err'); }
   finally { setBtnLoad('ubtn', 'ubtn-t', false, '파일 업로드 & 분석'); }
 }
@@ -433,27 +452,19 @@ async function doUploadNotion() {
   setBtnLoad('nbtn', 'nbtn-t', true);
   try {
     const d = await api('/upload/notion', { url });
-    S.sid = d.session_id;
-    showParsed(d.parsed);
-    showStep(2);
+    S.sid = d.session_id; showParsed(d.parsed); showStep(2);
   } catch (e) { toast(e.message, 'err'); }
   finally { setBtnLoad('nbtn', 'nbtn-t', false, '링크 분석'); }
 }
 
 function showParsed(list) {
-  // 프로젝트 목록 추출 (회고용)
   S.projects = [];
   list.forEach(p => {
     if (p.projects && p.projects.length) {
-      p.projects.forEach(pr => {
-        if (pr.name) S.projects.push(pr.name);
-      });
+      p.projects.forEach(pr => { if (pr.name) S.projects.push(pr.name); });
     }
   });
-  // 프로젝트가 없으면 파일명으로 대체
-  if (S.projects.length === 0) {
-    S.files.forEach(f => S.projects.push(f.name.replace(/\.[^.]+$/, '')));
-  }
+  if (S.projects.length === 0) S.files.forEach(f => S.projects.push(f.name.replace(/\.[^.]+$/, '')));
   if (S.projects.length === 0) S.projects.push('프로젝트');
 
   let h = '';
@@ -461,17 +472,17 @@ function showParsed(list) {
     h += '<div class="pcard">';
     if (p.summary) h += `<p style="font-size:12px;color:var(--g700);margin-bottom:9px;line-height:1.6">${esc(p.summary)}</p>`;
     if (p.projects && p.projects.length) {
-      h += `<h4>프로젝트 ${p.projects.length}개</h4>`;
+      h += `<h4>📁 프로젝트 ${p.projects.length}개 추출</h4>`;
       p.projects.forEach(pr => {
-        h += `<div style="margin-bottom:7px">
+        h += `<div style="margin:8px 0;padding:8px;background:#fff;border-radius:8px;border:1px solid var(--g200)">
           <strong style="font-size:12px">${esc(pr.name||'프로젝트')}</strong>
           ${pr.role ? `<span style="font-size:11px;color:var(--g500);margin-left:7px">${esc(pr.role)}</span>` : ''}
-          ${pr.tech_stack && pr.tech_stack.length ? `<div class="tags" style="margin-top:4px">${pr.tech_stack.slice(0,6).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+          ${pr.tech_stack && pr.tech_stack.length ? `<div class="tags" style="margin-top:5px">${pr.tech_stack.slice(0,6).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
         </div>`;
       });
     }
     if (p.skills && p.skills.length) {
-      h += `<h4 style="margin-top:9px">보유 스킬</h4><div class="tags">${p.skills.slice(0,10).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div>`;
+      h += `<div style="margin-top:8px"><strong style="font-size:11px;color:var(--g500)">보유 스킬</strong><div class="tags" style="margin-top:5px">${p.skills.slice(0,10).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div></div>`;
     }
     h += '</div>';
   });
@@ -497,26 +508,6 @@ function showStep(n) {
 }
 
 // ── Retrospective ────────────────────────────────────────────────────────────
-const RETRO_FIELDS = {
-  KPT: [
-    { id: 'Keep',    label: 'Keep · 만족스러운 점 (유지하고 싶은 기술/습관)',     placeholder: '다음에도 유지하고 싶은 것들을 적어주세요...' },
-    { id: 'Problem', label: 'Problem · 아쉬운 점 (기술적 한계, 비효율적 과정)',   placeholder: '개선이 필요했던 부분을 적어주세요...' },
-    { id: 'Try',     label: 'Try · 해결 방안 (다음 프로젝트에서 시도할 것)',       placeholder: '다음에 시도할 행동을 적어주세요...' },
-  ],
-  '4F': [
-    { id: 'Facts',    label: 'Facts · 객관적으로 어떤 일이 일어났는가',            placeholder: '무슨 일이 있었는지 사실 중심으로...' },
-    { id: 'Feelings', label: 'Feelings · 그 과정에서 어떤 감정을 느꼈는가',        placeholder: '느꼈던 감정을 솔직하게...' },
-    { id: 'Findings', label: 'Findings · 어떤 인사이트를 얻었는가',               placeholder: '얻은 인사이트나 교훈을...' },
-    { id: 'Future',   label: 'Future · 배운 점을 앞으로 어떻게 적용할 것인가',     placeholder: '앞으로 어떻게 적용할지...' },
-  ],
-  '4L': [
-    { id: 'Liked',      label: 'Liked · 가장 흥미롭고 즐거웠던 부분',              placeholder: '즐거웠던 부분을...' },
-    { id: 'Learned',    label: 'Learned · 새롭게 습득한 기술/지식',               placeholder: '새롭게 배운 것들을...' },
-    { id: 'Lacked',     label: 'Lacked · 스스로 느낀 역량의 한계',                placeholder: '부족했던 부분을...' },
-    { id: 'Longed for', label: 'Longed for · 더 좋은 결과를 위해 필요했던 것',    placeholder: '필요했던 것들을...' },
-  ],
-};
-
 function selRetro(type, el) {
   S.retroType = type;
   document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
@@ -527,31 +518,23 @@ function selRetro(type, el) {
 
 function renderRetroForms(type) {
   const fields = RETRO_FIELDS[type];
-  const wrap = document.getElementById('retro-forms-wrap');
-  wrap.innerHTML = S.projects.map((projName, idx) => {
-    const fieldsHtml = fields.map(f => `
-      <div class="ig">
-        <label>${esc(f.label)}</label>
-        <textarea id="retro-${idx}-${f.id}" placeholder="${esc(f.placeholder)}"></textarea>
+  document.getElementById('retro-forms-wrap').innerHTML = S.projects.map((name, idx) => `
+    <div class="retro-project-card">
+      <div class="retro-project-title">
+        <span class="retro-project-badge">${idx + 1}</span>${esc(name)}
       </div>
-    `).join('');
-    return `
-      <div class="retro-project-card">
-        <div class="retro-project-title">
-          <span class="retro-project-badge">${idx + 1}</span>
-          ${esc(projName)}
-        </div>
-        ${fieldsHtml}
-      </div>
-    `;
-  }).join('');
+      ${fields.map(f => `
+        <div class="ig">
+          <label>${esc(f.label)}</label>
+          <textarea id="retro-${idx}-${f.id}" placeholder="${esc(f.placeholder)}"></textarea>
+        </div>`).join('')}
+    </div>`).join('');
 }
 
 function collectRetroData() {
-  const fields = RETRO_FIELDS[S.retroType];
-  return S.projects.map((projName, idx) => {
-    const obj = { project: projName };
-    fields.forEach(f => {
+  return S.projects.map((name, idx) => {
+    const obj = { project: name };
+    RETRO_FIELDS[S.retroType].forEach(f => {
       const el = document.getElementById(`retro-${idx}-${f.id}`);
       obj[f.id] = el ? el.value.trim() : '';
     });
@@ -560,17 +543,11 @@ function collectRetroData() {
 }
 
 async function saveRetroAndInterview() {
-  const data = collectRetroData();
-  try {
-    await api('/retro/save', { session_id: S.sid, retro_type: S.retroType, retro_data: data });
-  } catch (_) {}
+  try { await api('/retro/save', { session_id: S.sid, retro_type: S.retroType, retro_data: collectRetroData() }); } catch (_) {}
   startInterview();
 }
-
 async function skipRetro() {
-  try {
-    await api('/retro/save', { session_id: S.sid, retro_type: 'skip', retro_data: [] });
-  } catch (_) {}
+  try { await api('/retro/save', { session_id: S.sid, retro_type: 'skip', retro_data: [] }); } catch (_) {}
   startInterview();
 }
 
@@ -593,36 +570,24 @@ function addMsg(role, text) {
   const c = document.getElementById('chat-msgs');
   const d = document.createElement('div');
   d.className = 'cmsg ' + role;
-  d.innerHTML = `<div class="clabel">${role === 'ai' ? '🤖 AI 인터뷰어' : '👤 나'}</div>
-    <div class="cbubble">${esc(text)}</div>`;
-  c.appendChild(d);
-  c.scrollTop = c.scrollHeight;
+  d.innerHTML = `<div class="clabel">${role === 'ai' ? '🤖 AI 인터뷰어' : '👤 나'}</div><div class="cbubble">${esc(text)}</div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
 }
-
 function showTyping() {
   const c = document.getElementById('chat-msgs');
   const d = document.createElement('div');
   d.className = 'cmsg ai'; d.id = 'typing-el';
   d.innerHTML = '<div class="clabel">🤖 AI 인터뷰어</div><div class="typing"><span></span><span></span><span></span></div>';
-  c.appendChild(d);
-  c.scrollTop = c.scrollHeight;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
 }
-
-function removeTyping() {
-  const el = document.getElementById('typing-el');
-  if (el) el.remove();
-}
-
-function ansKey(e) {
-  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitAns(); }
-}
+function removeTyping() { const el = document.getElementById('typing-el'); if (el) el.remove(); }
+function ansKey(e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitAns(); } }
 
 async function submitAns() {
   const inp = document.getElementById('ans');
   const ans = inp.value.trim();
   if (!ans) return;
-  addMsg('user', ans);
-  inp.value = '';
+  addMsg('user', ans); inp.value = '';
   const btn = document.getElementById('ansbtn');
   btn.disabled = true; btn.textContent = '…';
   showTyping();
@@ -630,7 +595,7 @@ async function submitAns() {
     const d = await api('/interview/answer', { session_id: S.sid, answer: ans });
     removeTyping();
     if (d.done) {
-      addMsg('ai', '모든 질문이 완료되었습니다! 이제 포트폴리오 양식을 선택해주세요 🎉');
+      addMsg('ai', '모든 질문 완료! 이제 포트폴리오 양식을 선택해주세요 🎉');
       document.getElementById('chat-in').style.display = 'none';
       setTimeout(() => showStep(3), 1400);
     } else {
@@ -665,61 +630,88 @@ async function scrapeJob() {
   finally { btn.textContent = '불러오기'; btn.disabled = false; }
 }
 
-async function doGenerate() {
-  const jobTitle = v('jobt');
-  if (!jobTitle) { toast('지원 직무명을 입력하세요', 'err'); return; }
-
-  const isUrl = document.getElementById('jt-url').style.display !== 'none';
-  const jobPosting = isUrl ? S.jobPosting : v('jobtxt');
-  if (!jobPosting) { toast(isUrl ? '채용공고를 불러오거나 직접 입력 탭을 사용하세요' : '채용공고를 입력하세요', 'err'); return; }
+async function doGenerate(withJD) {
   if (!S.pfType) { toast('포트폴리오 양식을 먼저 선택하세요', 'err'); return; }
 
+  let jobTitle = '', jobPosting = '';
+  if (withJD) {
+    jobTitle = v('jobt');
+    if (!jobTitle) { toast('지원 직무명을 입력하세요', 'err'); return; }
+    const isUrl = document.getElementById('jt-url').style.display !== 'none';
+    jobPosting = isUrl ? S.jobPosting : v('jobtxt');
+    if (!jobPosting) { toast(isUrl ? '채용공고를 불러오거나 직접 입력 탭을 사용하세요' : '채용공고를 입력하세요', 'err'); return; }
+  }
+
+  const btnId = withJD ? 'genbtn-b-t' : 'genbtn-a-t';
+  document.getElementById(btnId).innerHTML = '<span class="spin"></span> 생성 중…';
   document.getElementById('gen-overlay').classList.add('show');
+
   try {
     const d = await api('/generate', {
-      session_id: S.sid, job_title: jobTitle,
-      job_posting: jobPosting, portfolio_type: S.pfType
+      session_id: S.sid,
+      portfolio_type: S.pfType,
+      job_title: jobTitle,
+      job_posting: jobPosting,
     });
     showResult(d);
   } catch (e) { toast(e.message, 'err'); }
-  finally { document.getElementById('gen-overlay').classList.remove('show'); }
+  finally {
+    document.getElementById('gen-overlay').classList.remove('show');
+    document.getElementById(btnId).textContent = withJD ? '✨ 맞춤형으로 생성' : '바로 생성 →';
+  }
 }
 
 // ── Result ────────────────────────────────────────────────────────────────────
-const typeNames = { developer: '개발자', planner: '기획자', designer: '디자이너', marketer: '마케터' };
+const typeNames = { developer:'개발자', planner:'기획자', designer:'디자이너', marketer:'마케터' };
 
 function showResult(d) {
   document.getElementById('main').style.display = 'none';
   document.getElementById('prog-bar').style.display = 'none';
   const rp = document.getElementById('result-page');
   rp.classList.add('vis');
-  document.getElementById('rsub').textContent = `${d.job_title} · ${typeNames[d.portfolio_type]||d.portfolio_type} 형식`;
-  document.getElementById('pf-out').innerHTML = d.portfolio_html;
+
+  const trackLabel = d.track === 'B'
+    ? `<span class="track-badge track-b">🎯 채용공고 맞춤형 · ${d.job_title}</span>`
+    : `<span class="track-badge track-a">✅ 경험 정제 카드</span>`;
+
+  document.getElementById('rsub').innerHTML = `${typeNames[d.portfolio_type]||d.portfolio_type} 형식`;
+  document.getElementById('pf-out').innerHTML = trackLabel + d.portfolio_html;
+
+  // 카드별 복사 버튼 추가
+  document.querySelectorAll('#pf-out .item').forEach((card, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-card-btn';
+    btn.textContent = '복사';
+    btn.onclick = () => {
+      navigator.clipboard.writeText(card.innerText)
+        .then(() => { btn.textContent = '✓ 복사됨'; setTimeout(() => btn.textContent = '복사', 2000); })
+        .catch(() => toast('복사 실패', 'err'));
+    };
+    card.style.position = 'relative';
+    card.appendChild(btn);
+  });
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function copyPF() {
+function copyAll() {
   const txt = document.getElementById('pf-out').innerText;
   navigator.clipboard.writeText(txt)
-    .then(() => toast('클립보드에 복사되었습니다!', 'ok'))
+    .then(() => toast('전체 복사 완료!', 'ok'))
     .catch(() => toast('복사 실패', 'err'));
 }
 
 function startOver() {
   S.sid = null; S.step = 1; S.retroType = null; S.pfType = null;
   S.jobPosting = ''; S.files = []; S.projects = [];
-
   document.getElementById('result-page').classList.remove('vis');
   document.getElementById('main').style.display = 'block';
   document.getElementById('prog-bar').style.display = 'block';
-
   ['s2','s3','s4'].forEach(id => document.getElementById(id).classList.add('hidden'));
-
   document.getElementById('parsed-ok').style.display = 'none';
   document.getElementById('flist').innerHTML = '';
   document.getElementById('ubtn').disabled = true;
   document.getElementById('nurl').value = '';
-
   document.getElementById('ss-retro').style.display = 'block';
   document.getElementById('ss-interview').style.display = 'none';
   document.getElementById('chat-msgs').innerHTML = '';
@@ -728,15 +720,12 @@ function startOver() {
   document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
   document.getElementById('retro-forms-wrap').innerHTML = '';
   document.getElementById('retro-go').style.display = 'none';
-
   document.querySelectorAll('.tcard').forEach(c => c.classList.remove('sel'));
-
   document.getElementById('jobt').value = '';
   document.getElementById('joburl').value = '';
   document.getElementById('jobtxt').value = '';
   document.getElementById('job-preview').style.display = 'none';
   S.jobPosting = '';
-
   for (let i = 1; i <= 4; i++) {
     const p = document.getElementById('p' + i);
     const sc = p.querySelector('.sc');
@@ -751,11 +740,10 @@ function v(id) { return document.getElementById(id).value.trim(); }
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
 async function api(path, body, isForm = false) {
   const opts = { method: 'POST' };
   if (isForm) { opts.body = body; }
-  else { opts.headers = { 'Content-Type': 'application/json' }; opts.body = JSON.stringify(body); }
+  else { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(body); }
   const res = await fetch(path, opts);
   if (!res.ok) {
     let msg = '서버 오류가 발생했습니다.';
@@ -764,14 +752,12 @@ async function api(path, body, isForm = false) {
   }
   return res.json();
 }
-
 function setBtnLoad(btnId, txtId, loading, label = '') {
   const btn = document.getElementById(btnId);
   const txt = document.getElementById(txtId);
   btn.disabled = loading;
   txt.innerHTML = loading ? '<span class="spin"></span> 분석 중…' : label;
 }
-
 let tTimer;
 function toast(msg, type = '') {
   const el = document.getElementById('toast');
