@@ -30,7 +30,7 @@ try:
 except ImportError:
     PDF_OK = False
 
-app = FastAPI(title="AI Portfolio Generator")
+app = FastAPI(title="AI Portfolio Generator", docs_url=None, redoc_url=None)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 sessions: Dict[str, Any] = {}
@@ -333,6 +333,14 @@ def root():
 @app.get("/app")
 def app_page():
     return FileResponse("static/index.html")
+
+@app.get("/docs")
+def docs_page():
+    return FileResponse("static/docs.html")
+
+@app.get("/qna")
+def qna_page():
+    return FileResponse("static/qna.html")
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────

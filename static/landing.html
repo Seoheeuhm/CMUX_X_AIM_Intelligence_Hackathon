@@ -24,8 +24,18 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
 .logo-img{height:40px;width:auto;flex-shrink:0}
 .logo-name{font-size:17px;font-weight:800;color:var(--g900)}
+.nav-links{list-style:none;display:flex;gap:28px;align-items:center}
+.nav-links a{font-size:14px;font-weight:600;color:var(--g500);text-decoration:none;transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--g900)}
+.nav-right{display:flex;align-items:center;gap:12px}
 .nav-cta{padding:8px 18px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .2s}
 .nav-cta:hover{background:var(--pd)}
+.nav-hamburger{display:none;background:none;border:none;cursor:pointer;font-size:18px;color:var(--g700);padding:4px}
+.nav-mobile{display:none;position:fixed;top:63px;left:0;right:0;z-index:99;background:#fff;border-bottom:1px solid var(--g200);padding:16px 24px;flex-direction:column;gap:0}
+.nav-mobile a{display:block;padding:12px 0;font-size:15px;font-weight:600;color:var(--g700);text-decoration:none;border-bottom:1px solid var(--g100)}
+.nav-mobile.open{display:flex}
+.nav-mobile-cta{margin-top:12px;padding:12px 20px!important;background:var(--p);color:#fff!important;border-radius:8px;text-align:center;border:none!important}
+@media(max-width:768px){.nav-links{display:none}.nav-hamburger{display:block}}
 
 /* ── HERO ── */
 .hero{padding:140px 24px 100px;text-align:center;background:linear-gradient(180deg,#F5F5FF 0%,#fff 100%);position:relative;overflow:hidden}
@@ -136,6 +146,27 @@ footer p{font-size:12px;line-height:1.8}
 .foot-sep{color:var(--g700);font-size:11px}
 .foot-copy{font-size:11px;color:var(--g700)}
 
+/* ── PRICING ── */
+.pricing-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:720px;margin:56px auto 0}
+.price-card{background:#fff;border:2px solid var(--g200);border-radius:24px;padding:36px 32px;display:flex;flex-direction:column}
+.price-card.pro{border-color:var(--p);box-shadow:0 8px 32px rgba(99,102,241,.15)}
+.price-badge{display:inline-block;border-radius:6px;padding:3px 12px;font-size:12px;font-weight:700;width:fit-content;margin-bottom:16px}
+.price-badge.free-badge{background:var(--g100);color:var(--g500)}
+.price-badge.pro-badge{background:var(--pl);color:var(--p)}
+.price-amount{font-size:40px;font-weight:900;color:var(--g900);letter-spacing:-1px}
+.price-period{font-size:13px;color:var(--g400);margin-top:2px;margin-bottom:24px}
+.price-features{list-style:none;display:flex;flex-direction:column;gap:12px;flex:1;margin-bottom:28px}
+.price-features li{font-size:14px;color:var(--g700);display:flex;align-items:center;gap:8px}
+.price-features li.dim{color:var(--g400)}
+.price-features .fa-check{color:var(--ok);width:14px;flex-shrink:0}
+.price-features .fa-xmark{color:var(--g300);width:14px;flex-shrink:0}
+.price-btn{display:block;padding:13px 20px;border-radius:10px;text-align:center;font-size:14px;font-weight:700;text-decoration:none;transition:all .2s}
+.free-btn{background:var(--g100);color:var(--g700)}
+.free-btn:hover{background:var(--g200)}
+.pro-btn{background:var(--p);color:#fff;box-shadow:0 4px 16px rgba(99,102,241,.3)}
+.pro-btn:hover{background:var(--pd);transform:translateY(-1px)}
+@media(max-width:600px){.pricing-grid{grid-template-columns:1fr}}
+
 /* ── ANIMATIONS ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
@@ -169,8 +200,26 @@ footer p{font-size:12px;line-height:1.8}
     <img src="/static/logo.png" class="logo-img" alt="Portfolog">
     <span class="logo-name">Portfolog</span>
   </a>
-  <a href="/app" class="nav-cta">무료로 시작하기 →</a>
+  <ul class="nav-links">
+    <li><a href="#features">기능</a></li>
+    <li><a href="#pricing">가격</a></li>
+    <li><a href="/docs">문서</a></li>
+    <li><a href="/qna">문의</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/app" class="nav-cta">무료로 시작하기 →</a>
+    <button class="nav-hamburger" id="navToggle" aria-label="메뉴">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+  </div>
 </nav>
+<div class="nav-mobile" id="navMobile">
+  <a href="#features">기능</a>
+  <a href="#pricing">가격</a>
+  <a href="/docs">문서</a>
+  <a href="/qna">문의</a>
+  <a href="/app" class="nav-mobile-cta">무료로 시작하기 →</a>
+</div>
 
 <!-- HERO -->
 <section class="hero">
@@ -255,7 +304,7 @@ footer p{font-size:12px;line-height:1.8}
 </section>
 
 <!-- FEATURES -->
-<section class="features">
+<section class="features" id="features">
   <div class="section-wrap">
     <div class="center reveal">
       <div class="section-label">핵심 기능</div>
@@ -379,6 +428,45 @@ footer p{font-size:12px;line-height:1.8}
   </div>
 </section>
 
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-wrap">
+    <div class="center reveal">
+      <div class="section-label">요금제</div>
+      <h2 class="section-title">합리적인 가격으로<br>전문 포트폴리오를</h2>
+      <p class="section-desc">무료로 시작하고, 필요할 때 업그레이드하세요.</p>
+    </div>
+    <div class="pricing-grid reveal">
+      <div class="price-card">
+        <div class="price-badge free-badge">Free</div>
+        <div class="price-amount">₩0</div>
+        <div class="price-period">영구 무료</div>
+        <ul class="price-features">
+          <li><i class="fa-solid fa-check"></i> 계정당 포트폴리오 3회 생성</li>
+          <li><i class="fa-solid fa-check"></i> 4종 직무 템플릿</li>
+          <li><i class="fa-solid fa-check"></i> PDF 다운로드</li>
+          <li class="dim"><i class="fa-solid fa-xmark"></i> 클라우드 저장 없음</li>
+          <li class="dim"><i class="fa-solid fa-xmark"></i> 채용공고 맞춤 기능 없음</li>
+        </ul>
+        <a href="/app" class="price-btn free-btn">무료로 시작하기</a>
+      </div>
+      <div class="price-card pro">
+        <div class="price-badge pro-badge">Pro</div>
+        <div class="price-amount">₩9,900</div>
+        <div class="price-period">/ 월</div>
+        <ul class="price-features">
+          <li><i class="fa-solid fa-check"></i> 월 10회 포트폴리오 생성</li>
+          <li><i class="fa-solid fa-check"></i> 3GB 클라우드 프로젝트 저장</li>
+          <li><i class="fa-solid fa-check"></i> 채용공고 맞춤 최적화 (Track B)</li>
+          <li><i class="fa-solid fa-check"></i> 4종 직무 템플릿</li>
+          <li><i class="fa-solid fa-check"></i> PDF 다운로드</li>
+        </ul>
+        <a href="/app" class="price-btn pro-btn">Pro 시작하기</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- STATS -->
 <section class="stats">
   <div class="stats-wrap">
@@ -428,6 +516,13 @@ footer p{font-size:12px;line-height:1.8}
 </footer>
 
 <script>
+const toggle = document.getElementById('navToggle');
+const mobile = document.getElementById('navMobile');
+toggle.addEventListener('click', () => mobile.classList.toggle('open'));
+mobile.querySelectorAll('a').forEach(a =>
+  a.addEventListener('click', () => mobile.classList.remove('open'))
+);
+
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) {

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>문의 & QnA — Portfolog</title>
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#6366F1;--pd:#4338CA;--pl:#EEF2FF;
+  --ok:#10B981;--err:#EF4444;
+  --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;
+  --g400:#9CA3AF;--g500:#6B7280;--g700:#374151;--g900:#111827;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:var(--g900);line-height:1.6;overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--g200);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-img{height:40px;width:auto;flex-shrink:0}
+.logo-name{font-size:17px;font-weight:800;color:var(--g900)}
+.nav-links{list-style:none;display:flex;gap:28px;align-items:center}
+.nav-links a{font-size:14px;font-weight:600;color:var(--g500);text-decoration:none;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--g900)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-cta{padding:8px 18px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .2s}
+.nav-cta:hover{background:var(--pd)}
+.nav-hamburger{display:none;background:none;border:none;cursor:pointer;font-size:18px;color:var(--g700);padding:4px}
+.nav-mobile{display:none;position:fixed;top:63px;left:0;right:0;z-index:99;background:#fff;border-bottom:1px solid var(--g200);padding:16px 24px;flex-direction:column;gap:0}
+.nav-mobile a{display:block;padding:12px 0;font-size:15px;font-weight:600;color:var(--g700);text-decoration:none;border-bottom:1px solid var(--g100)}
+.nav-mobile.open{display:flex}
+.nav-mobile-cta{margin-top:12px;padding:12px 20px!important;background:var(--p);color:#fff!important;border-radius:8px;text-align:center;border:none!important}
+@media(max-width:768px){.nav-links{display:none}.nav-hamburger{display:block}}
+
+/* PAGE */
+.page-wrap{max-width:800px;margin:0 auto;padding:110px 24px 80px}
+
+/* PAGE HEADER */
+.page-header{text-align:center;margin-bottom:64px}
+.page-label{font-size:12px;font-weight:700;color:var(--p);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.page-title{font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:12px}
+.page-desc{font-size:16px;color:var(--g500);line-height:1.7}
+
+/* FAQ */
+.faq-title{font-size:20px;font-weight:800;margin-bottom:20px}
+.faq-list{display:flex;flex-direction:column;gap:0;border:1px solid var(--g200);border-radius:16px;overflow:hidden;margin-bottom:64px}
+.faq-item{}
+.faq-item+.faq-item{border-top:1px solid var(--g200)}
+.faq-q{width:100%;background:none;border:none;padding:20px 24px;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;font-weight:700;color:var(--g900);transition:background .15s}
+.faq-q:hover{background:var(--g50)}
+.faq-q.open{background:var(--pl);color:var(--p)}
+.faq-q .icon{flex-shrink:0;transition:transform .2s;color:var(--g400)}
+.faq-q.open .icon{transform:rotate(45deg);color:var(--p)}
+.faq-a{display:none;padding:0 24px 20px;font-size:14px;color:var(--g700);line-height:1.8;background:#fff}
+.faq-a.open{display:block}
+
+/* BOARD */
+.board-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.board-title{font-size:20px;font-weight:800}
+.board-count{font-size:13px;color:var(--g400)}
+.board-list{display:flex;flex-direction:column;gap:12px;margin-bottom:40px}
+.board-card{background:var(--g50);border:1px solid var(--g200);border-radius:12px;padding:20px 24px;cursor:pointer;transition:all .2s}
+.board-card:hover{border-color:var(--p);box-shadow:0 4px 16px rgba(99,102,241,.08)}
+.board-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.board-card-title{font-size:15px;font-weight:700;color:var(--g900)}
+.board-card-meta{font-size:12px;color:var(--g400);display:flex;gap:12px;align-items:center}
+.board-card-body{font-size:13px;color:var(--g500);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.board-status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.status-answered{background:#ECFDF5;color:#065F46}
+.status-pending{background:#FEF3C7;color:#92400E}
+
+/* FORM */
+.form-section{background:var(--g50);border:1px solid var(--g200);border-radius:20px;padding:32px}
+.form-title{font-size:18px;font-weight:800;margin-bottom:6px}
+.form-desc{font-size:14px;color:var(--g500);margin-bottom:24px}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-group label{font-size:13px;font-weight:700;color:var(--g700)}
+.form-group input,.form-group textarea,.form-group select{
+  padding:10px 14px;border:1px solid var(--g300);border-radius:8px;
+  font-size:14px;color:var(--g900);background:#fff;
+  transition:border .2s;font-family:inherit;outline:none}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.form-group textarea{resize:vertical;min-height:120px}
+.form-submit{padding:12px 28px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.form-submit:hover{background:var(--pd);transform:translateY(-1px)}
+
+/* FOOTER */
+footer{background:var(--g900);color:var(--g400);padding:40px 24px;text-align:center}
+footer .foot-logo{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px}
+.foot-logo-box{width:28px;height:28px;background:var(--p);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px}
+.foot-logo-name{font-size:15px;font-weight:700;color:#fff}
+footer p{font-size:12px;line-height:1.8}
+.foot-links{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px 0 8px;flex-wrap:wrap}
+.foot-links a{font-size:12px;color:var(--g400);text-decoration:none;transition:color .2s}
+.foot-links a:hover{color:#fff}
+.foot-sep{color:var(--g700);font-size:11px}
+.foot-copy{font-size:11px;color:var(--g700)}
+
+@media(max-width:560px){
+  .page-wrap{padding:88px 18px 64px}
+  .page-title{font-size:26px}
+  .faq-q{font-size:14px;padding:16px 18px}
+  .faq-a{padding:0 18px 16px}
+  .form-section{padding:24px 18px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <img src="/static/logo.png" class="logo-img" alt="Portfolog">
+    <span class="logo-name">Portfolog</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/#features">기능</a></li>
+    <li><a href="/#pricing">가격</a></li>
+    <li><a href="/docs">문서</a></li>
+    <li><a href="/qna" class="active">문의</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/app" class="nav-cta">무료로 시작하기 →</a>
+    <button class="nav-hamburger" id="navToggle" aria-label="메뉴"><i class="fa-solid fa-bars"></i></button>
+  </div>
+</nav>
+<div class="nav-mobile" id="navMobile">
+  <a href="/#features">기능</a>
+  <a href="/#pricing">가격</a>
+  <a href="/docs">문서</a>
+  <a href="/qna">문의</a>
+  <a href="/app" class="nav-mobile-cta">무료로 시작하기 →</a>
+</div>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div class="page-label">문의 & QnA</div>
+    <h1 class="page-title">무엇이든 물어보세요</h1>
+    <p class="page-desc">자주 묻는 질문을 확인하거나, 아래 게시판에 질문을 남겨주세요.<br>확인 후 빠르게 답변드립니다.</p>
+  </div>
+
+  <!-- FAQ -->
+  <h2 class="faq-title">자주 묻는 질문</h2>
+  <div class="faq-list">
+
+    <div class="faq-item">
+      <button class="faq-q">
+        포트폴리오 생성에 얼마나 걸리나요?
+        <i class="fa-solid fa-plus icon"></i>
+      </button>
+      <div class="faq-a">
+        평균 1~2분 내에 포트폴리오가 완성됩니다. 업로드한 파일 크기와 입력 내용에 따라 다소 차이가 있을 수 있습니다. AI가 전체 내용을 분석하는 과정이므로 잠시 기다려 주세요.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q">
+        어떤 파일 형식을 지원하나요?
+        <i class="fa-solid fa-plus icon"></i>
+      </button>
+      <div class="faq-a">
+        PDF, PPTX(파워포인트), 노션 공개 링크, 그리고 텍스트 직접 입력을 지원합니다. 파일은 최대 10MB까지, 최대 5개까지 동시에 업로드할 수 있습니다.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q">
+        생성된 포트폴리오는 어디에 저장되나요?
+        <i class="fa-solid fa-plus icon"></i>
+      </button>
+      <div class="faq-a">
+        Free 플랜은 세션 동안만 유지되며, 브라우저를 닫으면 사라집니다. PDF로 저장해두는 것을 권장합니다. Pro 플랜에서는 3GB 클라우드 저장 공간이 제공되어 언제든지 불러올 수 있습니다.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q">
+        Track B (채용공고 맞춤)는 어떻게 사용하나요?
+        <i class="fa-solid fa-plus icon"></i>
+      </button>
+      <div class="faq-a">
+        직무 선택 단계에서 '채용공고 URL 입력' 옵션을 선택하고 지원하려는 채용공고 링크를 붙여넣으면 됩니다. AI가 JD의 핵심 키워드를 추출하여 포트폴리오 내용을 해당 직무에 최적화하여 재구성합니다. Track B는 Pro 플랜에서 제공됩니다.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q">
+        개인정보는 안전하게 처리되나요?
+        <i class="fa-solid fa-plus icon"></i>
+      </button>
+      <div class="faq-a">
+        업로드된 파일과 입력 내용은 포트폴리오 생성 목적으로만 사용되며, 생성 완료 후 서버에서 즉시 삭제됩니다. 주민등록번호, 계좌번호 등 민감한 개인정보가 포함된 파일은 업로드 전 제거 후 사용해 주세요.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q">
+        Pro 플랜은 어떻게 결제하나요?
+        <i class="fa-solid fa-plus icon"></i>
+      </button>
+      <div class="faq-a">
+        현재 Pro 플랜 결제 시스템은 준비 중입니다. 출시 알림을 받으시려면 아래 게시판에 이메일과 함께 문의 남겨주시면 우선 안내드리겠습니다.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOARD -->
+  <div class="board-header">
+    <h2 class="board-title">문의 게시판</h2>
+    <span class="board-count">총 4개</span>
+  </div>
+  <div class="board-list">
+
+    <div class="board-card">
+      <div class="board-card-header">
+        <span class="board-card-title">노션 링크 연동 시 오류가 발생합니다</span>
+        <span class="board-status status-answered">답변완료</span>
+      </div>
+      <div class="board-card-meta">
+        <span>김*현</span>
+        <span>2025.04.20</span>
+      </div>
+      <div class="board-card-body">공개 설정이 되어 있는데도 "페이지를 불러올 수 없습니다" 오류가 뜹니다. 노션 링크는 어떻게 공유해야 하나요?</div>
+    </div>
+
+    <div class="board-card">
+      <div class="board-card-header">
+        <span class="board-card-title">디자이너 직군 포트폴리오에 이미지를 넣을 수 있나요?</span>
+        <span class="board-status status-answered">답변완료</span>
+      </div>
+      <div class="board-card-meta">
+        <span>이*은</span>
+        <span>2025.04.18</span>
+      </div>
+      <div class="board-card-body">Figma 작업물 이미지를 포트폴리오에 직접 첨부하거나 링크로 넣는 기능이 있는지 궁금합니다.</div>
+    </div>
+
+    <div class="board-card">
+      <div class="board-card-header">
+        <span class="board-card-title">생성된 포트폴리오를 Word 파일로 받을 수 있나요?</span>
+        <span class="board-status status-pending">답변대기</span>
+      </div>
+      <div class="board-card-meta">
+        <span>박*준</span>
+        <span>2025.04.22</span>
+      </div>
+      <div class="board-card-body">PDF 말고 Word(.docx)나 HWP 형식으로 내보내기가 가능하면 좋겠습니다. 회사에서 Word 파일로 제출해야 해서요.</div>
+    </div>
+
+    <div class="board-card">
+      <div class="board-card-header">
+        <span class="board-card-title">같은 자료로 여러 회사 맞춤 포트폴리오를 만들 수 있나요?</span>
+        <span class="board-status status-answered">답변완료</span>
+      </div>
+      <div class="board-card-meta">
+        <span>최*아</span>
+        <span>2025.04.15</span>
+      </div>
+      <div class="board-card-body">카카오, 네이버, 라인 각각 다른 채용공고에 맞춘 포트폴리오를 만들고 싶은데, 자료를 3번 업로드해야 하나요?</div>
+    </div>
+
+  </div>
+
+  <!-- FORM -->
+  <div class="form-section">
+    <h3 class="form-title">질문 남기기</h3>
+    <p class="form-desc">FAQ에서 찾지 못한 내용이 있다면 아래에 남겨주세요. 영업일 기준 1~2일 내 답변드립니다.</p>
+    <form id="qnaForm">
+      <div class="form-group">
+        <label for="qCategory">분류</label>
+        <select id="qCategory">
+          <option value="">선택하세요</option>
+          <option>사용 방법</option>
+          <option>오류 / 버그</option>
+          <option>요금제 / 결제</option>
+          <option>기능 제안</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="qTitle">제목</label>
+        <input type="text" id="qTitle" placeholder="질문 제목을 입력하세요">
+      </div>
+      <div class="form-group">
+        <label for="qBody">내용</label>
+        <textarea id="qBody" placeholder="궁금한 내용을 자세히 적어주세요."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="qEmail">이메일 (답변 수신용, 선택)</label>
+        <input type="email" id="qEmail" placeholder="example@email.com">
+      </div>
+      <button type="submit" class="form-submit">문의 제출하기</button>
+    </form>
+  </div>
+
+</div>
+
+<footer>
+  <div class="foot-logo">
+    <div class="foot-logo-box">P</div>
+    <span class="foot-logo-name">Portfolog</span>
+  </div>
+  <p>AI 포트폴리오 생성기 · Powered by Claude AI</p>
+  <div class="foot-links">
+    <a href="/privacy">개인정보처리방침</a>
+    <span class="foot-sep">·</span>
+    <a href="/terms">이용약관</a>
+    <span class="foot-sep">·</span>
+    <a href="mailto:taketech019@gmail.com">문의하기</a>
+  </div>
+  <p class="foot-copy">© 2025 Portfolog. All rights reserved.</p>
+</footer>
+
+<script>
+// Nav hamburger
+const toggle = document.getElementById('navToggle');
+const mobile = document.getElementById('navMobile');
+toggle.addEventListener('click', () => mobile.classList.toggle('open'));
+mobile.querySelectorAll('a').forEach(a =>
+  a.addEventListener('click', () => mobile.classList.remove('open'))
+);
+
+// FAQ accordion
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const isOpen = btn.classList.contains('open');
+    document.querySelectorAll('.faq-q').forEach(b => {
+      b.classList.remove('open');
+      b.nextElementSibling.classList.remove('open');
+    });
+    if (!isOpen) {
+      btn.classList.add('open');
+      btn.nextElementSibling.classList.add('open');
+    }
+  });
+});
+
+// Form submit
+document.getElementById('qnaForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const title = document.getElementById('qTitle').value.trim();
+  const body = document.getElementById('qBody').value.trim();
+  if (!title || !body) {
+    alert('제목과 내용을 입력해 주세요.');
+    return;
+  }
+  alert('문의가 접수되었습니다.\n영업일 기준 1~2일 내로 답변드리겠습니다.');
+  e.target.reset();
+});
+</script>
+</body>
+</html>
