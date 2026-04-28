@@ -324,9 +324,14 @@ class GenerateReq(BaseModel):
 # ── Static files ──────────────────────────────────────────────────────────────
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/image", StaticFiles(directory="image"), name="image")
 
 @app.get("/")
 def root():
+    return FileResponse("static/landing.html")
+
+@app.get("/app")
+def app_page():
     return FileResponse("static/index.html")
 
 
