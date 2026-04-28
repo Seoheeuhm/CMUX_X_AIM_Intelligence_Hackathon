@@ -207,7 +207,8 @@ footer p{font-size:12px;line-height:1.8}
     <li><a href="/qna">문의</a></li>
   </ul>
   <div class="nav-right">
-    <a href="/app" class="nav-cta">무료로 시작하기 →</a>
+    <a id="nav-login-btn" href="/auth/login" class="nav-cta">Google로 시작하기 →</a>
+    <button id="nav-logout-btn" onclick="authLogout()" class="nav-cta" style="display:none">로그아웃</button>
     <button class="nav-hamburger" id="navToggle" aria-label="메뉴">
       <i class="fa-solid fa-bars"></i>
     </button>
@@ -218,7 +219,7 @@ footer p{font-size:12px;line-height:1.8}
   <a href="#pricing">가격</a>
   <a href="/docs">문서</a>
   <a href="/qna">문의</a>
-  <a href="/app" class="nav-mobile-cta">무료로 시작하기 →</a>
+  <a href="/auth/login" class="nav-mobile-cta">Google로 시작하기 →</a>
 </div>
 
 <!-- HERO -->
@@ -227,7 +228,7 @@ footer p{font-size:12px;line-height:1.8}
   <h1>내 경험을 <span>완벽한 포트폴리오</span>로,<br>AI가 대신 써드립니다</h1>
   <p>파일 하나만 올리세요. AI가 당신의 경험을 분석하고, 직무에 맞는 전문적인 포트폴리오를 즉시 완성합니다.</p>
   <div class="hero-btns">
-    <a href="/app" class="btn-hero-p">지금 무료로 시작하기 →</a>
+    <a href="/auth/login" class="btn-hero-p">Google로 무료 시작하기 →</a>
     <a href="#how" class="btn-hero-o">작동 방식 보기</a>
   </div>
 
@@ -490,9 +491,9 @@ footer p{font-size:12px;line-height:1.8}
   <div class="section-wrap">
     <div class="reveal">
       <h2>지금 바로 <span>나만의 포트폴리오</span>를<br>만들어보세요</h2>
-      <p>회원가입 없이 무료로 시작할 수 있습니다.<br>파일 하나만 있으면 됩니다.</p>
+      <p>Google 계정으로 1초만에 시작하세요.<br>파일 하나만 있으면 됩니다.</p>
       <div class="cta-btns">
-        <a href="/app" class="btn-hero-p">무료로 포트폴리오 만들기 →</a>
+        <a href="/auth/login" class="btn-hero-p">Google로 포트폴리오 만들기 →</a>
       </div>
     </div>
   </div>
@@ -533,6 +534,30 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+<script>
+  function authLogout() {
+    localStorage.removeItem('sb_access_token');
+    localStorage.removeItem('sb_refresh_token');
+    window.location.href = '/';
+  }
+  function updateNav() {
+    const token = localStorage.getItem('sb_access_token');
+    const loginBtn = document.getElementById('nav-login-btn');
+    const logoutBtn = document.getElementById('nav-logout-btn');
+    if (loginBtn) loginBtn.style.display = token ? 'none' : 'inline-flex';
+    if (logoutBtn) logoutBtn.style.display = token ? 'inline-flex' : 'none';
+  }
+  function showAuthRequiredBanner() {
+    if (!new URLSearchParams(window.location.search).get('auth_required')) return;
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);' +
+      'background:#EF4444;color:white;padding:12px 24px;border-radius:8px;z-index:999;font-size:14px;white-space:nowrap;';
+    el.textContent = '서비스 이용을 위해 로그인이 필요합니다.';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+  document.addEventListener('DOMContentLoaded', () => { updateNav(); showAuthRequiredBanner(); });
 </script>
 </body>
 </html>

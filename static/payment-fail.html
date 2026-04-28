@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>결제 실패 · Portfolog</title>
+  <style>
+    body{font-family:system-ui,sans-serif;display:flex;align-items:center;
+         justify-content:center;height:100vh;margin:0;background:#F9FAFB}
+    .card{background:white;border-radius:16px;padding:40px;text-align:center;
+          box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:400px;width:90%}
+    .ico{font-size:48px;margin-bottom:16px}
+    h1{color:#111827;margin:0 0 8px;font-size:24px}
+    p{color:#6B7280;margin:0 0 24px;line-height:1.6}
+    a{display:inline-block;background:#6366F1;color:white;text-decoration:none;
+      padding:12px 32px;border-radius:8px;font-size:16px;font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="ico">😔</div>
+    <h1>결제에 실패했습니다</h1>
+    <p id="err">결제 처리 중 문제가 발생했습니다.<br>다시 시도해주세요.</p>
+    <a href="/app">돌아가기</a>
+  </div>
+  <script>
+    const msg = new URLSearchParams(window.location.search).get('message');
+    if (msg) document.getElementById('err').textContent = decodeURIComponent(msg);
+  </script>
+</body>
+</html>
