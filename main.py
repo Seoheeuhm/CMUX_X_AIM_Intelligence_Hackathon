@@ -40,7 +40,7 @@ def client() -> OpenAI:
     key = os.getenv("NVIDIA_API_KEY")
     if not key:
         raise HTTPException(500, "NVIDIA_API_KEY 환경변수가 설정되지 않았습니다.")
-    return OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=key)
+    return OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=key, timeout=180.0)
 
 
 def extract_pptx(data: bytes) -> str:
@@ -87,7 +87,7 @@ def clean_html(raw: str) -> str:
     return raw.strip()
 
 
-def call_llm(c: OpenAI, prompt: str, max_tokens: int = 8192, max_rounds: int = 4) -> str:
+def call_llm(c: OpenAI, prompt: str, max_tokens: int = 4096, max_rounds: int = 4) -> str:
     """NIM API 호출. max_tokens에 도달해 잘리면 자동으로 이어쓰기(최대 max_rounds회)."""
     messages = [{"role": "user", "content": prompt}]
     accumulated = ""
@@ -98,7 +98,7 @@ def call_llm(c: OpenAI, prompt: str, max_tokens: int = 8192, max_rounds: int = 4
             max_tokens=max_tokens,
             messages=messages,
         )
-        chunk = msg.choices[0].message.content
+        chunk = msg.choices[0].message.content or ""
         accumulated += chunk
 
         if msg.choices[0].finish_reason != "length":
