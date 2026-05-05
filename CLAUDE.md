@@ -15,7 +15,7 @@ uvicorn main:app --reload --port 8000
 uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
 
-환경 변수: 루트의 `.env` 파일에 `ANTHROPIC_API_KEY=...` 필요.
+환경 변수: 루트의 `.env` 파일에 `NVIDIA_API_KEY=...` 필요. (NVIDIA NIM API 키)
 
 ## Architecture
 

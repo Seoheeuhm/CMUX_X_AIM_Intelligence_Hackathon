@@ -5,7 +5,7 @@ import re
 import uuid
 from typing import Any, Dict, List
 
-import anthropic
+from openai import OpenAI
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 load_dotenv()
-print("KEY LOADED:", bool(os.getenv("ANTHROPIC_API_KEY")))
+print("KEY LOADED:", bool(os.getenv("NVIDIA_API_KEY")))
 
 try:
     from pptx import Presentation
@@ -36,11 +36,11 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 sessions: Dict[str, Any] = {}
 
 
-def client() -> anthropic.Anthropic:
-    key = os.getenv("ANTHROPIC_API_KEY")
+def client() -> OpenAI:
+    key = os.getenv("NVIDIA_API_KEY")
     if not key:
-        raise HTTPException(500, "ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다.")
-    return anthropic.Anthropic(api_key=key)
+        raise HTTPException(500, "NVIDIA_API_KEY 환경변수가 설정되지 않았습니다.")
+    return OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=key)
 
 
 def extract_pptx(data: bytes) -> str:
@@ -87,21 +87,21 @@ def clean_html(raw: str) -> str:
     return raw.strip()
 
 
-def call_claude(c: anthropic.Anthropic, prompt: str, max_tokens: int = 8192, max_rounds: int = 4) -> str:
-    """Claude 호출. max_tokens에 도달해 잘리면 자동으로 이어쓰기(최대 max_rounds회)."""
+def call_llm(c: OpenAI, prompt: str, max_tokens: int = 8192, max_rounds: int = 4) -> str:
+    """NIM API 호출. max_tokens에 도달해 잘리면 자동으로 이어쓰기(최대 max_rounds회)."""
     messages = [{"role": "user", "content": prompt}]
     accumulated = ""
 
     for _ in range(max_rounds):
-        msg = c.messages.create(
-            model="claude-sonnet-4-6",
+        msg = c.chat.completions.create(
+            model="moonshotai/kimi-k2.6",
             max_tokens=max_tokens,
             messages=messages,
         )
-        chunk = msg.content[0].text
+        chunk = msg.choices[0].message.content
         accumulated += chunk
 
-        if msg.stop_reason != "max_tokens":
+        if msg.choices[0].finish_reason != "length":
             break
 
         # 잘린 경우: 지금까지 쓴 내용을 assistant 턴으로 이어붙이고 계속 요청
@@ -121,8 +121,8 @@ def call_claude(c: anthropic.Anthropic, prompt: str, max_tokens: int = 8192, max
 
 def parse_materials(text: str, source: str) -> dict:
     c = client()
-    msg = c.messages.create(
-        model="claude-sonnet-4-6",
+    msg = c.chat.completions.create(
+        model="moonshotai/kimi-k2.6",
         max_tokens=2048,
         messages=[{
             "role": "user",
@@ -134,7 +134,7 @@ def parse_materials(text: str, source: str) -> dict:
             ),
         }],
     )
-    raw = msg.content[0].text.strip()
+    raw = msg.choices[0].message.content.strip()
     m = re.search(r"\{[\s\S]*\}", raw)
     if m:
         try:
@@ -430,8 +430,8 @@ def interview_start(req: InterviewStartReq):
     summary = json.dumps([m["parsed"] for m in sess["materials"]], ensure_ascii=False)
 
     c = client()
-    msg = c.messages.create(
-        model="claude-sonnet-4-6",
+    msg = c.chat.completions.create(
+        model="moonshotai/kimi-k2.6",
         max_tokens=600,
         messages=[{
             "role": "user",
@@ -444,7 +444,7 @@ def interview_start(req: InterviewStartReq):
             ),
         }],
     )
-    raw = msg.content[0].text.strip()
+    raw = msg.choices[0].message.content.strip()
     m = re.search(r"\{[\s\S]*\}", raw)
     qs = None
     if m:
@@ -533,14 +533,14 @@ def generate(req: GenerateReq):
     c = client()
 
     # 1차 호출: 핵심 섹션 (최대 8192토큰, 잘리면 자동 이어쓰기)
-    html1 = call_claude(c, prompt1)
+    html1 = call_llm(c, prompt1)
 
     # 2차 호출: 회고·지표·학습계획 섹션 (최대 8192토큰, 잘리면 자동 이어쓰기)
     prompt2 = build_prompt_second_call(
         mat_json, interview_txt, retro_txt,
         has_jd, req.job_title, req.job_posting,
     )
-    html2 = call_claude(c, prompt2)
+    html2 = call_llm(c, prompt2)
 
     # ── 결합 ────────────────────────────────────────────────────────────────
     combined = html1 + "\n" + html2
