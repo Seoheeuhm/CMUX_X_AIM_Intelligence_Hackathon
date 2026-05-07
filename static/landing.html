@@ -552,7 +552,7 @@ footer p{font-size:12px;line-height:1.8}
       <h2>지금 바로 <span>나만의 포트폴리오</span>를<br>만들어보세요</h2>
       <p>Google 계정으로 1초만에 시작하세요.<br>파일 하나만 있으면 됩니다.</p>
       <div class="cta-btns">
-        <a href="#" onclick="openLoginModal();return false;" class="btn-hero-p">Google로 포트폴리오 만들기 →</a>
+        <a id="cta-bottom-btn" href="#" onclick="openLoginModal();return false;" class="btn-hero-p">Google로 포트폴리오 만들기 →</a>
       </div>
     </div>
   </div>
@@ -659,6 +659,13 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
       heroCta.textContent = '포트폴리오 만들기 →';
       heroCta.href = '/app';
       heroCta.removeAttribute('onclick');
+    }
+
+    const ctaBtn = document.getElementById('cta-bottom-btn');
+    if (ctaBtn) {
+      ctaBtn.textContent = '포트폴리오 만들기 →';
+      ctaBtn.href = '/app';
+      ctaBtn.removeAttribute('onclick');
     }
 
     const payload = parseJWT(token);
