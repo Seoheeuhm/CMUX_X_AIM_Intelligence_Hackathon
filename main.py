@@ -346,21 +346,23 @@ class PaymentConfirmReq(BaseModel):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/image", StaticFiles(directory="image"), name="image")
 
+_NO_CACHE = {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
+
 @app.get("/")
 def root():
-    return FileResponse("static/landing.html")
+    return FileResponse("static/landing.html", headers=_NO_CACHE)
 
 @app.get("/app")
 def app_page():
-    return FileResponse("static/index.html")
+    return FileResponse("static/index.html", headers=_NO_CACHE)
 
 @app.get("/docs")
 def docs_page():
-    return FileResponse("static/docs.html")
+    return FileResponse("static/docs.html", headers=_NO_CACHE)
 
 @app.get("/qna")
 def qna_page():
-    return FileResponse("static/qna.html")
+    return FileResponse("static/qna.html", headers=_NO_CACHE)
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
