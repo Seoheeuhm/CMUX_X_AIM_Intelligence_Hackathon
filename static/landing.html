@@ -287,7 +287,7 @@ footer p{font-size:12px;line-height:1.8}
   <h1>내 경험을 <span>완벽한 포트폴리오</span>로,<br>AI가 대신 써드립니다</h1>
   <p>파일 하나만 올리세요. AI가 당신의 경험을 분석하고, 직무에 맞는 전문적인 포트폴리오를 즉시 완성합니다.</p>
   <div class="hero-btns">
-    <a href="#" onclick="openLoginModal();return false;" class="btn-hero-p">Google로 무료 시작하기 →</a>
+    <a id="hero-cta-btn" href="#" onclick="openLoginModal();return false;" class="btn-hero-p">Google로 무료 시작하기 →</a>
     <a href="#how" class="btn-hero-o">작동 방식 보기</a>
   </div>
 
@@ -653,6 +653,13 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     }
     if (loginBtn) loginBtn.style.display = 'none';
     if (avatarBtn) avatarBtn.style.display = 'flex';
+
+    const heroCta = document.getElementById('hero-cta-btn');
+    if (heroCta) {
+      heroCta.textContent = '포트폴리오 만들기 →';
+      heroCta.href = '/app';
+      heroCta.removeAttribute('onclick');
+    }
 
     const payload = parseJWT(token);
     const meta = payload.user_metadata || {};
