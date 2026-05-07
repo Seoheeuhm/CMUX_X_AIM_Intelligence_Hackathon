@@ -53,6 +53,30 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,
 .nav-mobile-cta{margin-top:12px;padding:12px 20px!important;background:var(--p);color:#fff!important;border-radius:8px;text-align:center;border:none!important}
 @media(max-width:768px){.nav-links{display:none}.nav-hamburger{display:block}}
 
+/* ── PROFILE DROPDOWN ── */
+.nav-profile{position:relative}
+.profile-avatar-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--g200);background:none;cursor:pointer;padding:0;overflow:hidden;transition:border-color .18s,box-shadow .18s;flex-shrink:0;display:none}
+.profile-avatar-btn:hover{border-color:var(--p);box-shadow:0 0 0 3px var(--pl)}
+.profile-avatar-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.profile-avatar-initials{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px}
+.profile-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:240px;background:#fff;border:1px solid var(--g200);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.13),0 2px 8px rgba(0,0,0,.06);z-index:200;opacity:0;transform:translateY(-6px) scale(.97);pointer-events:none;transition:opacity .18s ease,transform .18s ease;transform-origin:top right}
+.profile-dropdown.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.pd-header{display:flex;align-items:center;gap:12px;padding:16px 16px 14px;border-bottom:1px solid var(--g100)}
+.pd-avatar{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--g200)}
+.pd-avatar img{width:100%;height:100%;object-fit:cover}
+.pd-avatar-init{width:100%;height:100%;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff}
+.pd-info{min-width:0}
+.pd-name{font-size:14px;font-weight:700;color:var(--g900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pd-email{font-size:12px;color:var(--g400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.pd-menu{padding:6px 0}
+.pd-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;font-weight:500;color:var(--g700);text-decoration:none;cursor:pointer;background:none;border:none;width:100%;text-align:left;transition:background .13s,color .13s}
+.pd-item:hover{background:var(--g50);color:var(--g900)}
+.pd-item i{width:16px;text-align:center;color:var(--g400);font-size:13px;flex-shrink:0}
+.pd-divider{height:1px;background:var(--g100);margin:4px 0}
+.pd-item.logout{color:var(--err)}
+.pd-item.logout i{color:var(--err)}
+.pd-item.logout:hover{background:#FEF2F2}
+
 /* ── HERO ── */
 .hero{padding:140px 24px 100px;text-align:center;background:linear-gradient(180deg,#F5F5FF 0%,#fff 100%);position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(99,102,241,.1) 0%,transparent 70%);pointer-events:none}
@@ -224,7 +248,25 @@ footer p{font-size:12px;line-height:1.8}
   </ul>
   <div class="nav-right">
     <a id="nav-login-btn" href="#" onclick="openLoginModal();return false;" class="nav-cta">Google로 시작하기 →</a>
-    <button id="nav-logout-btn" onclick="authLogout()" class="nav-cta" style="display:none">로그아웃</button>
+    <div class="nav-profile">
+      <button class="profile-avatar-btn" id="profileAvatarBtn" onclick="toggleProfileDropdown()" aria-label="프로필">
+        <div class="profile-avatar-initials" id="profileAvatarInner"></div>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="pd-header">
+          <div class="pd-avatar" id="pdAvatar"><div class="pd-avatar-init" id="pdAvatarInit"></div></div>
+          <div class="pd-info">
+            <div class="pd-name" id="pdName"></div>
+            <div class="pd-email" id="pdEmail"></div>
+          </div>
+        </div>
+        <div class="pd-menu">
+          <a href="/app" class="pd-item"><i class="fa-solid fa-wand-magic-sparkles"></i>포트폴리오 만들기</a>
+          <div class="pd-divider"></div>
+          <button class="pd-item logout" onclick="authLogout()"><i class="fa-solid fa-right-from-bracket"></i>로그아웃</button>
+        </div>
+      </div>
+    </div>
     <button class="nav-hamburger" id="navToggle" aria-label="메뉴">
       <i class="fa-solid fa-bars"></i>
     </button>
@@ -580,13 +622,66 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     localStorage.removeItem('sb_refresh_token');
     window.location.href = '/';
   }
+
+  function parseJWT(token) {
+    try { return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }
+    catch { return {}; }
+  }
+
+  function setAvatar(containerEl, initEl, avatarUrl, initials) {
+    if (avatarUrl) {
+      const img = document.createElement('img');
+      img.src = avatarUrl;
+      img.alt = '';
+      img.onerror = () => { img.remove(); initEl.textContent = initials; };
+      containerEl.prepend(img);
+      initEl.style.display = 'none';
+    } else {
+      initEl.textContent = initials;
+    }
+  }
+
   function updateNav() {
     const token = localStorage.getItem('sb_access_token');
     const loginBtn = document.getElementById('nav-login-btn');
-    const logoutBtn = document.getElementById('nav-logout-btn');
-    if (loginBtn) loginBtn.style.display = token ? 'none' : 'inline-flex';
-    if (logoutBtn) logoutBtn.style.display = token ? 'inline-flex' : 'none';
+    const avatarBtn = document.getElementById('profileAvatarBtn');
+    if (!token) {
+      if (loginBtn) loginBtn.style.display = 'inline-flex';
+      if (avatarBtn) avatarBtn.style.display = 'none';
+      return;
+    }
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (avatarBtn) avatarBtn.style.display = 'flex';
+
+    const payload = parseJWT(token);
+    const meta = payload.user_metadata || {};
+    const email = payload.email || meta.email || '';
+    const fullName = meta.full_name || meta.name || email.split('@')[0] || '?';
+    const avatarUrl = meta.avatar_url || meta.picture || '';
+    const initials = fullName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() || '?';
+
+    // nav mini avatar
+    setAvatar(document.getElementById('profileAvatarInner').parentElement,
+              document.getElementById('profileAvatarInner'), avatarUrl, initials);
+
+    // dropdown header
+    document.getElementById('pdName').textContent = fullName;
+    document.getElementById('pdEmail').textContent = email;
+    setAvatar(document.getElementById('pdAvatar'),
+              document.getElementById('pdAvatarInit'), avatarUrl, initials);
   }
+
+  function toggleProfileDropdown() {
+    document.getElementById('profileDropdown').classList.toggle('open');
+  }
+
+  document.addEventListener('click', e => {
+    const btn = document.getElementById('profileAvatarBtn');
+    const dd = document.getElementById('profileDropdown');
+    if (dd && !dd.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+      dd.classList.remove('open');
+    }
+  });
   function openLoginModal() {
     document.getElementById('login-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
