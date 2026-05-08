@@ -3,6 +3,7 @@ import json
 import os
 import re
 import uuid
+from datetime import datetime
 from typing import Any, Dict, List
 
 import anthropic
@@ -34,6 +35,90 @@ app = FastAPI(title="AI Portfolio Generator", docs_url=None, redoc_url=None)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 sessions: Dict[str, Any] = {}
+portfolio_history: List[Dict[str, Any]] = []
+
+SARAMIN_DUMMY = [
+    {
+        "id": "d001",
+        "title": "백엔드 개발자 (Python/FastAPI)",
+        "company": "테크스타트업 A",
+        "deadline": "2025-05-31",
+        "job_type": "정규직",
+        "experience": "경력 3-5년",
+        "location": "서울 강남구",
+        "description": "• Python/FastAPI 기반 RESTful API 개발\n• PostgreSQL, Redis 운영 경험\n• AWS EC2/RDS/S3 사용 경험\n• CI/CD(Github Actions) 경험 우대\n• 스타트업 경험 우대",
+    },
+    {
+        "id": "d002",
+        "title": "프론트엔드 개발자 (React)",
+        "company": "이커머스 플랫폼 B",
+        "deadline": "2025-06-15",
+        "job_type": "정규직",
+        "experience": "경력 2-4년",
+        "location": "서울 마포구",
+        "description": "• React/TypeScript 기반 웹 애플리케이션 개발\n• Next.js 경험 우대\n• 반응형 UI 구현 경험\n• 성능 최적화 경험 보유자 우대\n• 디자인 시스템 구축 경험",
+    },
+    {
+        "id": "d003",
+        "title": "서비스 기획자 (PM)",
+        "company": "핀테크 스타트업 C",
+        "deadline": "2025-05-25",
+        "job_type": "정규직",
+        "experience": "경력 3년 이상",
+        "location": "서울 여의도",
+        "description": "• 모바일 앱/웹 서비스 기획 및 운영\n• 사용자 리서치 및 데이터 기반 의사결정\n• 개발팀과의 협업 경험\n• Figma/Notion 활용 능숙\n• 금융/결제 도메인 경험 우대",
+    },
+    {
+        "id": "d004",
+        "title": "UX/UI 디자이너",
+        "company": "SaaS 기업 D",
+        "deadline": "2025-06-30",
+        "job_type": "정규직",
+        "experience": "경력 2-5년",
+        "location": "서울 성수동",
+        "description": "• Figma 활용 UI 디자인 및 프로토타이핑\n• 사용자 여정 지도 및 와이어프레임 제작\n• 디자인 시스템 구축 및 관리\n• A/B 테스트 설계 및 분석 경험\n• B2B SaaS 경험 우대",
+    },
+    {
+        "id": "d005",
+        "title": "퍼포먼스 마케터",
+        "company": "이커머스 스타트업 E",
+        "deadline": "2025-06-10",
+        "job_type": "정규직",
+        "experience": "경력 2-4년",
+        "location": "서울 강남구",
+        "description": "• Meta/Google/카카오 광고 운영 경험\n• 데이터 분석 (GA4, Amplitude) 능숙\n• ROAS, CAC, LTV 지표 최적화 경험\n• SQL 기초 쿼리 가능\n• 그로스해킹 마인드셋 보유자",
+    },
+    {
+        "id": "d006",
+        "title": "데이터 분석가",
+        "company": "헬스케어 스타트업 F",
+        "deadline": "2025-07-01",
+        "job_type": "정규직",
+        "experience": "경력 2년 이상",
+        "location": "서울 종로구",
+        "description": "• Python/SQL 기반 데이터 분석\n• Tableau/Looker Studio 시각화\n• A/B 테스트 설계 및 통계 분석\n• 머신러닝 기초 지식 우대\n• 헬스케어 도메인 경험 우대",
+    },
+    {
+        "id": "d007",
+        "title": "iOS 개발자 (Swift)",
+        "company": "모빌리티 서비스 G",
+        "deadline": "2025-06-20",
+        "job_type": "정규직",
+        "experience": "경력 3년 이상",
+        "location": "서울 서초구",
+        "description": "• Swift/SwiftUI 기반 iOS 앱 개발\n• REST API 연동 및 데이터 처리\n• 앱 성능 최적화 경험\n• TDD/BDD 경험 우대\n• 지도/위치 서비스 개발 경험 우대",
+    },
+    {
+        "id": "d008",
+        "title": "콘텐츠 마케터",
+        "company": "에듀테크 기업 H",
+        "deadline": "2025-05-28",
+        "job_type": "정규직",
+        "experience": "경력 1-3년",
+        "location": "서울 강남구",
+        "description": "• 블로그/SNS 채널 콘텐츠 기획 및 제작\n• SEO 최적화 전략 수립\n• 이메일 마케팅 캠페인 운영\n• CRM 툴 활용 경험\n• 교육 분야 콘텐츠 경험 우대",
+    },
+]
 
 
 def client() -> anthropic.Anthropic:
@@ -88,7 +173,6 @@ def clean_html(raw: str) -> str:
 
 
 def call_claude(c: anthropic.Anthropic, prompt: str, max_tokens: int = 8192, max_rounds: int = 4) -> str:
-    """Claude 호출. max_tokens에 도달해 잘리면 자동으로 이어쓰기(최대 max_rounds회)."""
     messages = [{"role": "user", "content": prompt}]
     accumulated = ""
 
@@ -104,7 +188,6 @@ def call_claude(c: anthropic.Anthropic, prompt: str, max_tokens: int = 8192, max
         if msg.stop_reason != "max_tokens":
             break
 
-        # 잘린 경우: 지금까지 쓴 내용을 assistant 턴으로 이어붙이고 계속 요청
         messages.append({"role": "assistant", "content": chunk})
         messages.append({
             "role": "user",
@@ -316,7 +399,7 @@ class RetroReq(BaseModel):
 
 class GenerateReq(BaseModel):
     session_id: str
-    portfolio_type: str       # developer | planner | designer | marketer
+    portfolio_type: str
     job_title: str = ""
     job_posting: str = ""
 
@@ -332,6 +415,10 @@ def root():
 
 @app.get("/app")
 def app_page():
+    return FileResponse("static/main.html")
+
+@app.get("/generator")
+def generator_page():
     return FileResponse("static/index.html")
 
 @app.get("/docs")
@@ -341,6 +428,75 @@ def docs_page():
 @app.get("/qna")
 def qna_page():
     return FileResponse("static/qna.html")
+
+
+# ── Job listings ──────────────────────────────────────────────────────────────
+
+@app.get("/api/jobs/seoul")
+def get_seoul_jobs(page: int = 1, per_page: int = 30, keyword: str = ""):
+    key = os.getenv("SEOUL_API_KEY", "")
+    if not key:
+        return {"jobs": [], "total": 0, "page": page, "per_page": per_page,
+                "error": "SEOUL_API_KEY 환경변수가 설정되지 않았습니다."}
+    start = (page - 1) * per_page + 1
+    end = page * per_page
+    url = f"http://openapi.seoul.go.kr:8088/{key}/json/GetJobInfo/{start}/{end}/"
+    try:
+        r = requests.get(url, timeout=10)
+        data = r.json()
+        if "RESULT" in data and "GetJobInfo" not in data:
+            msg = data["RESULT"].get("MESSAGE", "데이터를 불러올 수 없습니다.")
+            return {"jobs": [], "total": 0, "page": page, "per_page": per_page, "error": msg}
+        info = data.get("GetJobInfo", {})
+        result_code = info.get("RESULT", {}).get("CODE", "")
+        if result_code and result_code != "INFO-000":
+            msg = info.get("RESULT", {}).get("MESSAGE", "데이터 없음")
+            return {"jobs": [], "total": 0, "page": page, "per_page": per_page, "error": msg}
+        rows = info.get("row", [])
+        total = int(info.get("list_total_count", len(rows)))
+        return {"jobs": rows, "total": total, "page": page, "per_page": per_page}
+    except Exception as e:
+        return {"jobs": [], "total": 0, "page": page, "per_page": per_page,
+                "error": f"API 호출 실패: {str(e)}"}
+
+
+@app.get("/api/jobs/saramin")
+def get_saramin_jobs():
+    key = os.getenv("SARAMIN_API_KEY", "")
+    if not key:
+        return {"jobs": SARAMIN_DUMMY, "is_dummy": True}
+    url = "https://oapi.saramin.co.kr/job-search"
+    params = {"access-key": key, "count": 20, "start": 1, "fields": "all"}
+    try:
+        r = requests.get(url, params=params, timeout=10,
+                         headers={"Accept": "application/json"})
+        data = r.json()
+        raw_jobs = data.get("jobs", {}).get("job", [])
+        formatted = []
+        for job in raw_jobs:
+            pos = job.get("position", {})
+            formatted.append({
+                "id": str(job.get("id", "")),
+                "title": pos.get("title", ""),
+                "company": job.get("company", {}).get("detail", {}).get("name", ""),
+                "deadline": job.get("expiration-date", ""),
+                "job_type": pos.get("job-type", {}).get("name", ""),
+                "experience": pos.get("experience-level", {}).get("name", ""),
+                "location": pos.get("location", {}).get("name", ""),
+                "description": pos.get("title", "") + "\n" + pos.get("required-education-level", {}).get("name", ""),
+            })
+        if not formatted:
+            return {"jobs": SARAMIN_DUMMY, "is_dummy": True}
+        return {"jobs": formatted, "is_dummy": False}
+    except Exception:
+        return {"jobs": SARAMIN_DUMMY, "is_dummy": True}
+
+
+# ── Portfolio history ─────────────────────────────────────────────────────────
+
+@app.get("/api/history")
+def get_history():
+    return {"history": portfolio_history[:3]}
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────
@@ -522,7 +678,6 @@ def generate(req: GenerateReq):
     tmpl = TEMPLATES.get(req.portfolio_type, TEMPLATES["developer"])
     has_jd = bool(req.job_title and req.job_posting and req.job_posting.strip())
 
-    # ── 1차 호출: 핵심 섹션 ──────────────────────────────────────────────────
     if has_jd:
         prompt1 = build_prompt_track_b(
             mat_json, interview_txt, tmpl, req.job_title, req.job_posting
@@ -531,21 +686,32 @@ def generate(req: GenerateReq):
         prompt1 = build_prompt_track_a(mat_json, interview_txt, tmpl)
 
     c = client()
-
-    # 1차 호출: 핵심 섹션 (최대 8192토큰, 잘리면 자동 이어쓰기)
     html1 = call_claude(c, prompt1)
 
-    # 2차 호출: 회고·지표·학습계획 섹션 (최대 8192토큰, 잘리면 자동 이어쓰기)
     prompt2 = build_prompt_second_call(
         mat_json, interview_txt, retro_txt,
         has_jd, req.job_title, req.job_posting,
     )
     html2 = call_claude(c, prompt2)
 
-    # ── 결합 ────────────────────────────────────────────────────────────────
     combined = html1 + "\n" + html2
     if '<div class="portfolio-content">' not in combined:
         combined = f'<div class="portfolio-content">{combined}</div>'
+
+    # Save to portfolio history
+    type_names = {"developer": "개발자", "planner": "기획자", "designer": "디자이너", "marketer": "마케터"}
+    hist_item = {
+        "id": str(uuid.uuid4()),
+        "created_at": datetime.now().strftime("%Y.%m.%d %H:%M"),
+        "job_title": req.job_title if req.job_title else "경험 정제 카드",
+        "portfolio_type": req.portfolio_type,
+        "portfolio_type_name": type_names.get(req.portfolio_type, req.portfolio_type),
+        "track": "B" if has_jd else "A",
+        "full_html": combined,
+    }
+    portfolio_history.insert(0, hist_item)
+    if len(portfolio_history) > 50:
+        portfolio_history[:] = portfolio_history[:50]
 
     return {
         "portfolio_html": combined,
