@@ -69,3 +69,17 @@ CREATE TABLE IF NOT EXISTS public.payments (
 
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "service_role_all_payments" ON public.payments USING (auth.role() = 'service_role');
+
+-- 4. portfolios — 생성된 포트폴리오 저장
+CREATE TABLE IF NOT EXISTS public.portfolios (
+  id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  job_title      TEXT,
+  portfolio_type TEXT,
+  track          TEXT,
+  full_html      TEXT,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.portfolios ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service_role_all_portfolios" ON public.portfolios USING (auth.role() = 'service_role');

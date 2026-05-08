@@ -122,3 +122,35 @@ def payment_confirm(order_id: str, payment_key: str) -> None:
 
 def payment_fail(order_id: str) -> None:
     get_db().table("payments").update({"status": "failed"}).eq("order_id", order_id).execute()
+
+
+# ── Portfolios ─────────────────────────────────────────────────
+
+def portfolio_save(user_id: str, job_title: str, portfolio_type: str, track: str, full_html: str) -> None:
+    get_db().table("portfolios").insert({
+        "user_id": user_id,
+        "job_title": job_title or "경험 정제 카드",
+        "portfolio_type": portfolio_type,
+        "track": track,
+        "full_html": full_html,
+    }).execute()
+
+
+def portfolio_list(user_id: str, limit: int = 3) -> list:
+    res = (get_db().table("portfolios")
+           .select("id,job_title,portfolio_type,track,created_at")
+           .eq("user_id", user_id)
+           .order("created_at", desc=True)
+           .limit(limit)
+           .execute())
+    return res.data or []
+
+
+def portfolio_get_html(portfolio_id: str, user_id: str) -> str | None:
+    res = (get_db().table("portfolios")
+           .select("full_html")
+           .eq("id", portfolio_id)
+           .eq("user_id", user_id)
+           .maybe_single()
+           .execute())
+    return res.data["full_html"] if res.data else None
