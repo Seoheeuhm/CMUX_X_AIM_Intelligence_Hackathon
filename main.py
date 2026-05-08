@@ -22,6 +22,7 @@ from db import (
     payment_create,
     payment_fail,
     payment_get_status,
+
     profile_can_generate,
     profile_get,
     profile_increment_gen,
@@ -767,7 +768,7 @@ def generate(req: GenerateReq, user: dict = Depends(get_current_user)):
         combined = f'<div class="portfolio-content">{combined}</div>'
 
     type_names = {"developer": "개발자", "planner": "기획자", "designer": "디자이너", "marketer": "마케터"}
-    hist_item = {
+    portfolio_history.insert(0, {
         "id": str(uuid.uuid4()),
         "created_at": datetime.now().strftime("%Y.%m.%d %H:%M"),
         "job_title": req.job_title if req.job_title else "경험 정제 카드",
@@ -775,11 +776,9 @@ def generate(req: GenerateReq, user: dict = Depends(get_current_user)):
         "portfolio_type_name": type_names.get(req.portfolio_type, req.portfolio_type),
         "track": "B" if has_jd else "A",
         "full_html": combined,
-    }
-    portfolio_history.insert(0, hist_item)
+    })
     if len(portfolio_history) > 50:
         portfolio_history[:] = portfolio_history[:50]
-
     profile_increment_gen(user_id)
 
     return {

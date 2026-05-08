@@ -1551,8 +1551,15 @@ function fmtDate(s) {
 }
 async function api(path, body, isForm = false) {
   const opts = { method: 'POST' };
-  if (isForm) { opts.body = body; }
-  else { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(body); }
+  const token = localStorage.getItem('sb_access_token');
+  if (isForm) {
+    opts.body = body;
+    if (token) opts.headers = { 'Authorization': `Bearer ${token}` };
+  } else {
+    opts.headers = { 'Content-Type': 'application/json' };
+    if (token) opts.headers['Authorization'] = `Bearer ${token}`;
+    opts.body = JSON.stringify(body);
+  }
   const res = await fetch(path, opts);
   if (!res.ok) {
     let msg = '서버 오류가 발생했습니다.';
