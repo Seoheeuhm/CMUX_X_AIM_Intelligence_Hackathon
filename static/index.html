@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 포트폴리오 생성기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<script src="https://js.tosspayments.com/v1/payment"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -12,12 +14,14 @@
   --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;
   --g400:#9CA3AF;--g500:#6B7280;--g700:#374151;--g900:#111827;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh}
 
-header{background:#fff;border-bottom:1px solid var(--g200);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
-.logo{width:34px;height:34px;background:var(--p);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0}
-.hd h1{font-size:17px;font-weight:700}
-.hd p{font-size:12px;color:var(--g500)}
+header{background:#fff;border-bottom:1px solid var(--g200);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;border-radius:10px;padding:4px 8px 4px 4px;transition:background .18s}
+.nav-logo:hover{background:var(--g50)}
+.logo-img{height:34px;width:auto;flex-shrink:0;display:block}
+.hd h1{font-size:16px;font-weight:700;color:var(--g900);line-height:1.2}
+.hd p{font-size:11px;color:var(--g400);margin-top:1px}
 
 #prog-bar{background:#fff;border-bottom:1px solid var(--g200);padding:14px 24px}
 .steps{display:flex;align-items:center;max-width:720px;margin:0 auto}
@@ -193,11 +197,15 @@ textarea{resize:vertical;min-height:90px}
 <body>
 
 <header>
-  <div class="logo">P</div>
-  <div class="hd">
-    <h1>포트폴로그 | Portfo-Log</h1>
-    <p>PPT/PDF 업로드 → 경험 정제 → 포트폴리오 완성</p>
-  </div>
+  <a href="/" class="nav-logo">
+    <img src="/static/logo.png" class="logo-img" alt="Portfolog">
+    <div class="hd">
+      <h1>Portfolog</h1>
+      <p>PPT/PDF 업로드 → 경험 정제 → 포트폴리오 완성</p>
+    </div>
+  </a>
+  <span id="plan-badge" style="margin-left:auto;font-size:12px;color:#6B7280;padding:3px 10px;background:#F3F4F6;border-radius:12px;white-space:nowrap"></span>
+  <button onclick="authLogout()" style="margin-left:8px;background:none;border:1px solid #E5E7EB;color:#6B7280;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer">로그아웃</button>
 </header>
 
 <div id="prog-bar">
@@ -395,9 +403,21 @@ textarea{resize:vertical;min-height:90px}
 
 <script>
 const S = {
+  token: localStorage.getItem('sb_access_token'),
   sid: null, step: 1, retroType: null, pfType: null,
   jobPosting: '', files: [], projects: []
 };
+
+// 토큰 없으면 홈으로
+if (!S.token) {
+  window.location.href = '/?auth_required=1';
+}
+
+function authLogout() {
+  localStorage.removeItem('sb_access_token');
+  localStorage.removeItem('sb_refresh_token');
+  window.location.href = '/';
+}
 
 const RETRO_FIELDS = {
   KPT: [
@@ -775,9 +795,26 @@ function esc(s) {
 }
 async function api(path, body, isForm = false) {
   const opts = { method: 'POST' };
-  if (isForm) { opts.body = body; }
-  else { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(body); }
+  if (isForm) {
+    opts.headers = { 'Authorization': `Bearer ${S.token}` };
+    opts.body = body;
+  } else {
+    opts.headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${S.token}`,
+    };
+    opts.body = JSON.stringify(body);
+  }
   const res = await fetch(path, opts);
+  if (res.status === 401) {
+    localStorage.removeItem('sb_access_token');
+    window.location.href = '/?auth_required=1';
+    return;
+  }
+  if (res.status === 402) {
+    showUpgradeModal();
+    return;
+  }
   if (!res.ok) {
     let msg = '서버 오류가 발생했습니다.';
     try { const e = await res.json(); msg = e.detail || msg; } catch (_) {}
@@ -798,6 +835,80 @@ function toast(msg, type = '') {
   el.className = 'toast' + (type ? ' ' + type : '') + ' show';
   clearTimeout(tTimer);
   tTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ── 플랜 정보 ──────────────────────────────────────────────────
+let _tossClientKey = '';
+(async function loadUserInfo() {
+  try {
+    const res = await fetch('/auth/me', {
+      headers: { 'Authorization': `Bearer ${S.token}` },
+    });
+    if (!res.ok) return;
+    const { profile } = await res.json();
+    const remaining = profile.gen_limit - profile.gen_count;
+    const badge = document.getElementById('plan-badge');
+    if (badge) {
+      badge.textContent = profile.plan === 'pro'
+        ? `Pro · 남은 ${remaining}회`
+        : `Free · 남은 ${remaining}/3회`;
+    }
+    const cfg = await fetch('/config').then(r => r.json());
+    _tossClientKey = cfg.toss_client_key || '';
+  } catch (_) {}
+})();
+
+// ── 업그레이드 모달 ──────────────────────────────────────────
+function showUpgradeModal() {
+  if (document.getElementById('upgrade-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'upgrade-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);' +
+    'display:flex;align-items:center;justify-content:center;z-index:1000';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:32px;max-width:400px;width:90%;text-align:center">
+      <h2 style="margin:0 0 8px;color:#111827;font-size:22px">생성 횟수 초과</h2>
+      <p style="color:#6B7280;margin:0 0 20px;line-height:1.6">
+        Free 플랜의 3회 생성을 모두 사용했습니다.<br>
+        Pro 플랜으로 업그레이드하면 월 10회를 이용할 수 있습니다.
+      </p>
+      <p style="font-size:28px;font-weight:700;color:#6366F1;margin:0 0 20px">
+        ₩9,900<span style="font-size:14px;color:#6B7280;font-weight:400">/월</span>
+      </p>
+      <button onclick="startPayment()" style="background:#6366F1;color:white;border:none;
+        padding:13px 0;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px">
+        Pro로 업그레이드
+      </button>
+      <button onclick="document.getElementById('upgrade-overlay').remove()"
+        style="background:none;border:none;color:#9CA3AF;cursor:pointer;font-size:14px">
+        취소
+      </button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function startPayment() {
+  document.getElementById('upgrade-overlay')?.remove();
+  const res = await fetch('/payment/create-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${S.token}` },
+    body: JSON.stringify({ amount: 9900 }),
+  });
+  if (!res.ok) { toast('주문 생성에 실패했습니다.', 'err'); return; }
+  const order = await res.json();
+
+  const toss = TossPayments(_tossClientKey);
+  const appUrl = window.location.origin;
+  toss.requestPayment('카드', {
+    amount: order.amount,
+    orderId: order.order_id,
+    orderName: order.order_name,
+    customerName: order.customer_name,
+    successUrl: `${appUrl}/payment/success`,
+    failUrl: `${appUrl}/payment/fail`,
+  }).catch(err => {
+    if (err.code !== 'USER_CANCEL') toast('결제 오류: ' + err.message, 'err');
+  });
 }
 </script>
 </body>
