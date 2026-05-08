@@ -3,17 +3,32 @@ import json
 import os
 import re
 import uuid
-from typing import Any, Dict, List
+from typing import List
 
 import anthropic
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+from auth import get_current_user, get_optional_user
+from db import (
+    payment_confirm,
+    payment_create,
+    payment_fail,
+    payment_get_status,
+    profile_can_generate,
+    profile_get,
+    profile_increment_gen,
+    profile_upgrade_to_pro,
+    session_get,
+    session_set,
+)
+from payment import toss_confirm
 
 load_dotenv()
 print("KEY LOADED:", bool(os.getenv("ANTHROPIC_API_KEY")))
@@ -32,8 +47,6 @@ except ImportError:
 
 app = FastAPI(title="AI Portfolio Generator", docs_url=None, redoc_url=None)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-
-sessions: Dict[str, Any] = {}
 
 
 def client() -> anthropic.Anthropic:
@@ -104,7 +117,6 @@ def call_claude(c: anthropic.Anthropic, prompt: str, max_tokens: int = 8192, max
         if msg.stop_reason != "max_tokens":
             break
 
-        # 잘린 경우: 지금까지 쓴 내용을 assistant 턴으로 이어붙이고 계속 요청
         messages.append({"role": "assistant", "content": chunk})
         messages.append({
             "role": "user",
@@ -320,27 +332,72 @@ class GenerateReq(BaseModel):
     job_title: str = ""
     job_posting: str = ""
 
+class PaymentCreateReq(BaseModel):
+    amount: int = 9900
+
+class PaymentConfirmReq(BaseModel):
+    payment_key: str
+    order_id: str
+    amount: int
+
 
 # ── Static files ──────────────────────────────────────────────────────────────
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/image", StaticFiles(directory="image"), name="image")
 
+_NO_CACHE = {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
+
 @app.get("/")
 def root():
-    return FileResponse("static/landing.html")
+    return FileResponse("static/landing.html", headers=_NO_CACHE)
 
 @app.get("/app")
 def app_page():
-    return FileResponse("static/index.html")
+    return FileResponse("static/index.html", headers=_NO_CACHE)
 
 @app.get("/docs")
 def docs_page():
-    return FileResponse("static/docs.html")
+    return FileResponse("static/docs.html", headers=_NO_CACHE)
 
 @app.get("/qna")
 def qna_page():
-    return FileResponse("static/qna.html")
+    return FileResponse("static/qna.html", headers=_NO_CACHE)
+
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+
+@app.get("/auth/login")
+def auth_login():
+    supabase_url = os.environ["SUPABASE_URL"]
+    app_url = os.environ.get("APP_URL", "http://localhost:8000")
+    redirect_to = f"{app_url}/auth/callback"
+    oauth_url = (
+        f"{supabase_url}/auth/v1/authorize"
+        f"?provider=google"
+        f"&redirect_to={redirect_to}"
+    )
+    return RedirectResponse(url=oauth_url)
+
+
+@app.get("/auth/callback")
+def auth_callback():
+    return FileResponse("static/auth-callback.html")
+
+
+@app.get("/auth/me")
+def auth_me(user: dict = Depends(get_current_user)):
+    profile = profile_get(user["sub"])
+    return {
+        "id": user["sub"],
+        "email": user.get("email", ""),
+        "profile": profile,
+    }
+
+
+@app.get("/config")
+def get_config():
+    return {"toss_client_key": os.environ.get("TOSS_CLIENT_KEY", "")}
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────
@@ -364,13 +421,13 @@ async def upload_file(files: List[UploadFile] = File(...)):
         parsed = parse_materials(raw, name)
         materials.append({"source": name, "raw": raw[:5000], "parsed": parsed})
 
-    sessions[sid] = {
+    session_set(sid, {
         "materials": materials,
         "retro": {},
         "questions": [],
         "answers": [],
         "q_index": 0,
-    }
+    })
     return {"session_id": sid, "parsed": [m["parsed"] for m in materials]}
 
 
@@ -381,13 +438,13 @@ def upload_notion(req: UrlReq):
         raise HTTPException(400, "노션 페이지를 가져올 수 없습니다. 공개 링크인지 확인해주세요.")
     sid = str(uuid.uuid4())
     parsed = parse_materials(raw, "Notion")
-    sessions[sid] = {
+    session_set(sid, {
         "materials": [{"source": "Notion", "raw": raw[:5000], "parsed": parsed}],
         "retro": {},
         "questions": [],
         "answers": [],
         "q_index": 0,
-    }
+    })
     return {"session_id": sid, "parsed": [parsed]}
 
 
@@ -397,13 +454,13 @@ def upload_text(req: TextReq):
         raise HTTPException(400, "텍스트를 입력해주세요.")
     sid = str(uuid.uuid4())
     parsed = parse_materials(req.text, "직접 입력")
-    sessions[sid] = {
+    session_set(sid, {
         "materials": [{"source": "직접 입력", "raw": req.text[:5000], "parsed": parsed}],
         "retro": {},
         "questions": [],
         "answers": [],
         "q_index": 0,
-    }
+    })
     return {"session_id": sid, "parsed": [parsed]}
 
 
@@ -411,12 +468,11 @@ def upload_text(req: TextReq):
 
 @app.post("/retro/save")
 def retro_save(req: RetroReq):
-    if req.session_id not in sessions:
+    sess = session_get(req.session_id)
+    if sess is None:
         raise HTTPException(404, "세션을 찾을 수 없습니다.")
-    sessions[req.session_id]["retro"] = {
-        "type": req.retro_type,
-        "data": req.retro_data,
-    }
+    sess["retro"] = {"type": req.retro_type, "data": req.retro_data}
+    session_set(req.session_id, sess)
     return {"ok": True}
 
 
@@ -424,9 +480,9 @@ def retro_save(req: RetroReq):
 
 @app.post("/interview/start")
 def interview_start(req: InterviewStartReq):
-    if req.session_id not in sessions:
+    sess = session_get(req.session_id)
+    if sess is None:
         raise HTTPException(404, "세션을 찾을 수 없습니다.")
-    sess = sessions[req.session_id]
     summary = json.dumps([m["parsed"] for m in sess["materials"]], ensure_ascii=False)
 
     c = client()
@@ -460,16 +516,18 @@ def interview_start(req: InterviewStartReq):
         ]
     sess["questions"] = qs
     sess["q_index"] = 0
+    session_set(req.session_id, sess)
     return {"question": qs[0], "number": 1, "total": len(qs)}
 
 
 @app.post("/interview/answer")
 def interview_answer(req: InterviewAnswerReq):
-    if req.session_id not in sessions:
+    sess = session_get(req.session_id)
+    if sess is None:
         raise HTTPException(404, "세션을 찾을 수 없습니다.")
-    sess = sessions[req.session_id]
-    sess["answers"].append(req.answer)
-    sess["q_index"] += 1
+    sess["answers"] = sess.get("answers", []) + [req.answer]
+    sess["q_index"] = sess.get("q_index", 0) + 1
+    session_set(req.session_id, sess)
     if sess["q_index"] >= len(sess["questions"]):
         return {"done": True}
     q = sess["questions"][sess["q_index"]]
@@ -489,10 +547,18 @@ def scrape_url(req: UrlReq):
 # ── Generate portfolio ────────────────────────────────────────────────────────
 
 @app.post("/generate")
-def generate(req: GenerateReq):
-    if req.session_id not in sessions:
+def generate(req: GenerateReq, user: dict = Depends(get_current_user)):
+    user_id = user["sub"]
+
+    if not profile_can_generate(user_id):
+        raise HTTPException(
+            status_code=402,
+            detail="생성 횟수를 모두 사용했습니다. Pro 플랜으로 업그레이드하세요.",
+        )
+
+    sess = session_get(req.session_id)
+    if sess is None:
         raise HTTPException(404, "세션을 찾을 수 없습니다.")
-    sess = sessions[req.session_id]
 
     mat_json = json.dumps([m["parsed"] for m in sess["materials"]], ensure_ascii=False)
 
@@ -522,7 +588,6 @@ def generate(req: GenerateReq):
     tmpl = TEMPLATES.get(req.portfolio_type, TEMPLATES["developer"])
     has_jd = bool(req.job_title and req.job_posting and req.job_posting.strip())
 
-    # ── 1차 호출: 핵심 섹션 ──────────────────────────────────────────────────
     if has_jd:
         prompt1 = build_prompt_track_b(
             mat_json, interview_txt, tmpl, req.job_title, req.job_posting
@@ -531,21 +596,19 @@ def generate(req: GenerateReq):
         prompt1 = build_prompt_track_a(mat_json, interview_txt, tmpl)
 
     c = client()
-
-    # 1차 호출: 핵심 섹션 (최대 8192토큰, 잘리면 자동 이어쓰기)
     html1 = call_claude(c, prompt1)
 
-    # 2차 호출: 회고·지표·학습계획 섹션 (최대 8192토큰, 잘리면 자동 이어쓰기)
     prompt2 = build_prompt_second_call(
         mat_json, interview_txt, retro_txt,
         has_jd, req.job_title, req.job_posting,
     )
     html2 = call_claude(c, prompt2)
 
-    # ── 결합 ────────────────────────────────────────────────────────────────
     combined = html1 + "\n" + html2
     if '<div class="portfolio-content">' not in combined:
         combined = f'<div class="portfolio-content">{combined}</div>'
+
+    profile_increment_gen(user_id)
 
     return {
         "portfolio_html": combined,
@@ -553,6 +616,47 @@ def generate(req: GenerateReq):
         "portfolio_type": req.portfolio_type,
         "track": "B" if has_jd else "A",
     }
+
+
+# ── Payment ───────────────────────────────────────────────────────────────────
+
+@app.post("/payment/create-order")
+def payment_create_order(req: PaymentCreateReq, user: dict = Depends(get_current_user)):
+    order_id = f"portfolog-{uuid.uuid4().hex[:16]}"
+    payment_create(user["sub"], order_id, req.amount)
+    return {
+        "order_id": order_id,
+        "amount": req.amount,
+        "order_name": "Portfolog Pro 1개월",
+        "customer_name": user.get("email", "고객"),
+    }
+
+
+@app.post("/payment/confirm")
+def payment_confirm_route(req: PaymentConfirmReq, user: dict = Depends(get_current_user)):
+    status = payment_get_status(req.order_id)
+    if status == "confirmed":
+        return {"ok": True, "message": "이미 처리된 결제입니다."}
+
+    try:
+        toss_confirm(req.payment_key, req.order_id, req.amount)
+    except ValueError as e:
+        payment_fail(req.order_id)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    payment_confirm(req.order_id, req.payment_key)
+    profile_upgrade_to_pro(user["sub"])
+    return {"ok": True, "message": "Pro 플랜으로 업그레이드 되었습니다!"}
+
+
+@app.get("/payment/success")
+def payment_success_page():
+    return FileResponse("static/payment-success.html")
+
+
+@app.get("/payment/fail")
+def payment_fail_page():
+    return FileResponse("static/payment-fail.html")
 
 
 if __name__ == "__main__":

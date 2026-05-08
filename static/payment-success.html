@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>결제 완료 · Portfolog</title>
+  <style>
+    :root{--p:#6366F1}
+    body{font-family:system-ui,sans-serif;display:flex;align-items:center;
+         justify-content:center;height:100vh;margin:0;background:#F9FAFB}
+    .card{background:white;border-radius:16px;padding:40px;text-align:center;
+          box-shadow:0 4px 24px rgba(0,0,0,.08);max-width:400px;width:90%}
+    .ico{font-size:48px;margin-bottom:16px}
+    h1{color:#111827;margin:0 0 8px;font-size:24px}
+    p{color:#6B7280;margin:0 0 24px;line-height:1.6}
+    a{display:inline-block;background:var(--p);color:white;text-decoration:none;
+      padding:12px 32px;border-radius:8px;font-size:16px;font-weight:600}
+    .status{font-size:13px;color:#9CA3AF;margin-top:16px;min-height:20px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="ico">🎉</div>
+    <h1>결제가 완료되었습니다!</h1>
+    <p>Pro 플랜이 활성화되었습니다.<br>이번 달 포트폴리오를 10회 생성할 수 있습니다.</p>
+    <a href="/app">포트폴리오 만들기</a>
+    <div class="status" id="status-msg">결제 확인 중...</div>
+  </div>
+  <script>
+    (async function () {
+      const p = new URLSearchParams(window.location.search);
+      const paymentKey = p.get('paymentKey');
+      const orderId = p.get('orderId');
+      const amount = parseInt(p.get('amount') || '9900', 10);
+      const token = localStorage.getItem('sb_access_token');
+      const statusEl = document.getElementById('status-msg');
+
+      if (!paymentKey || !orderId || !token) {
+        statusEl.textContent = '';
+        return;
+      }
+      try {
+        const res = await fetch('/payment/confirm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ payment_key: paymentKey, order_id: orderId, amount }),
+        });
+        const data = await res.json();
+        statusEl.textContent = data.message || '';
+      } catch (_) {
+        statusEl.textContent = '결제 확인 중 오류가 발생했습니다.';
+      }
+    })();
+  </script>
+</body>
+</html>
