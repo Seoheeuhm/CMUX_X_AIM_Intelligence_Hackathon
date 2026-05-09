@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 중... · Portfolog</title>
+  <style>
+    body{font-family:system-ui,sans-serif;display:flex;align-items:center;
+         justify-content:center;height:100vh;margin:0;background:#F9FAFB}
+    .box{text-align:center;color:#374151}
+    .spin{width:40px;height:40px;border:3px solid #E5E7EB;border-top-color:#6366F1;
+          border-radius:50%;animation:s .8s linear infinite;margin:0 auto 16px}
+    @keyframes s{to{transform:rotate(360deg)}}
+    p{margin:0;font-size:15px}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="spin"></div>
+    <p id="msg">로그인 처리 중입니다...</p>
+  </div>
+  <script>
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const token = hash.get('access_token');
+    const refresh = hash.get('refresh_token');
+    if (token) {
+      localStorage.setItem('sb_access_token', token);
+      if (refresh) localStorage.setItem('sb_refresh_token', refresh);
+      window.location.href = '/app';
+    } else {
+      const err = hash.get('error_description')
+        || new URLSearchParams(window.location.search).get('error_description')
+        || '로그인에 실패했습니다. 다시 시도해주세요.';
+      document.getElementById('msg').textContent = decodeURIComponent(err);
+      setTimeout(() => { window.location.href = '/'; }, 3000);
+    }
+  </script>
+</body>
+</html>

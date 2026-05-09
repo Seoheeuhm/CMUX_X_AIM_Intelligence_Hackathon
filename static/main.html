@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포트폴로그 | Portfo-Log</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#6366F1;--pd:#4338CA;--pl:#EEF2FF;
+  --ok:#10B981;--err:#EF4444;
+  --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;
+  --g400:#9CA3AF;--g500:#6B7280;--g700:#374151;--g900:#111827;
+  --header-h:63px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh}
+
+/* ── Header ── */
+header{background:#fff;border-bottom:1px solid var(--g200);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.logo{width:34px;height:34px;background:var(--p);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0}
+.hd h1{font-size:17px;font-weight:700}
+.hd p{font-size:12px;color:var(--g500)}
+
+/* ── History Section ── */
+#history-section{background:#fff;border-bottom:1px solid var(--g200);padding:12px 18px}
+.hist-inner{max-width:960px;margin:0 auto}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hist-header h3{font-size:13px;font-weight:700;color:var(--g700)}
+.hist-cards{display:flex;gap:10px;overflow-x:auto;padding-bottom:2px}
+.hist-cards::-webkit-scrollbar{height:4px}
+.hist-cards::-webkit-scrollbar-track{background:var(--g100)}
+.hist-cards::-webkit-scrollbar-thumb{background:var(--g300);border-radius:2px}
+.hist-card{min-width:210px;flex-shrink:0;background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;gap:9px;transition:all .2s}
+.hist-card:hover{border-color:var(--p);background:var(--pl);transform:translateY(-1px)}
+.hist-icon{font-size:20px;flex-shrink:0}
+.hist-info{flex:1;min-width:0}
+.hist-title{font-size:12px;font-weight:700;color:var(--g900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{font-size:11px;color:var(--g500);margin-top:1px}
+.hist-empty{font-size:12px;color:var(--g400);padding:6px 0;text-align:center;width:100%}
+
+/* ── Main Tab Bar ── */
+#main-tab-bar{background:#fff;border-bottom:2px solid var(--g200);position:sticky;top:var(--header-h);z-index:40}
+.main-tabs-wrap{max-width:960px;margin:0 auto;padding:0 18px;display:flex}
+.main-tab{flex:1;padding:14px 16px;border:none;background:none;font-size:14px;font-weight:600;color:var(--g500);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap}
+.main-tab:hover{color:var(--g900);background:var(--g50)}
+.main-tab.active{color:var(--p);border-bottom-color:var(--p)}
+
+/* ── Tab Contents ── */
+.main-tc{display:none;animation:fadeIn .25s ease}
+.main-tc.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.tab-inner{max-width:960px;margin:0 auto;padding:24px 18px}
+
+/* ── Tab Header ── */
+.tab-top-bar{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--g200)}
+.tab-top-bar h2{font-size:18px;font-weight:800;margin-bottom:4px}
+.tab-top-bar p{font-size:13px;color:var(--g500)}
+.dummy-badge{display:inline-flex;align-items:center;gap:5px;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:6px;padding:4px 11px;font-size:12px;font-weight:600;margin-top:8px}
+
+/* ── Filter Bar ── */
+.filter-bar{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;font-weight:700;color:var(--g500);white-space:nowrap}
+.fg-kw{flex:1;min-width:180px}
+.fg-kw .filter-input{width:100%;padding:8px 11px;border:1px solid var(--g300);border-radius:7px;font-size:13px;color:var(--g900);background:#fff;outline:none;transition:border .2s}
+.fg-kw .filter-input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(99,102,241,.08)}
+.filter-select{padding:8px 10px;border:1px solid var(--g300);border-radius:7px;font-size:12px;color:var(--g900);background:#fff;cursor:pointer;outline:none;transition:border .2s;min-width:100px}
+.filter-select:focus{border-color:var(--p)}
+.filter-actions{display:flex;gap:7px;align-items:flex-end;flex-shrink:0}
+.filter-divider{width:1px;background:var(--g200);align-self:stretch;margin:0 4px}
+.filter-status{font-size:12px;color:var(--p);font-weight:600;padding:6px 0 4px;display:flex;align-items:center;gap:8px}
+.filter-tag{display:inline-flex;align-items:center;gap:4px;background:var(--pl);color:var(--p);border:1px solid #A5B4FC;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:600}
+.filter-tag button{background:none;border:none;cursor:pointer;color:var(--p);font-size:12px;line-height:1;padding:0 0 0 2px}
+
+/* ── Pagination ── */
+.pagination{display:flex;align-items:center;justify-content:center;gap:5px;padding:28px 0 8px;flex-wrap:wrap}
+.pg-btn{min-width:34px;height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--g200);background:#fff;font-size:13px;font-weight:600;color:var(--g700);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.pg-btn:hover:not(:disabled){border-color:var(--p);color:var(--p);background:var(--pl)}
+.pg-btn.active{border-color:var(--p);background:var(--p);color:#fff}
+.pg-btn:disabled{opacity:.4;cursor:not-allowed}
+.pg-ellipsis{color:var(--g400);font-size:13px;padding:0 4px}
+.pg-info{font-size:12px;color:var(--g500);text-align:center;margin-top:6px}
+
+/* ── Job Grid ── */
+.job-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.job-card{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:0}
+.job-card:hover{border-color:var(--p);box-shadow:0 4px 16px rgba(99,102,241,.12);transform:translateY(-2px)}
+.jc-header{margin-bottom:9px}
+.jc-title{font-size:14px;font-weight:700;color:var(--g900);line-height:1.4;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.jc-org{font-size:12px;color:var(--p);font-weight:600}
+.jc-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.job-tag{background:var(--g100);color:var(--g700);border-radius:4px;padding:2px 8px;font-size:11px;font-weight:500}
+.job-tag.tag-loc{background:#F0FDF4;color:#065F46}
+.job-tag.tag-type{background:#EFF6FF;color:#1D4ED8}
+.jc-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--g100);margin-top:auto}
+.jc-deadline{font-size:11px;color:var(--g500)}
+.jc-arrow{color:var(--p);font-weight:700;font-size:14px}
+
+/* ── Job State ── */
+.job-state{padding:48px 24px;text-align:center;color:var(--g500)}
+.spin-lg{width:34px;height:34px;border:3px solid var(--g200);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+.job-empty-icon{font-size:38px;margin-bottom:10px}
+.hint{font-size:11px;color:var(--g400);margin-top:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Job Detail Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:#fff;border-radius:16px;max-width:600px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25);display:flex;flex-direction:column}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--g200);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:0;background:#fff;z-index:1;border-radius:16px 16px 0 0}
+.modal-header h2{font-size:16px;font-weight:800;color:var(--g900);line-height:1.45;flex:1}
+.modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--g400);padding:0;flex-shrink:0;line-height:1;transition:color .15s}
+.modal-close:hover{color:var(--g900)}
+.modal-meta-row{padding:13px 24px;border-bottom:1px solid var(--g100);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.modal-content-area{padding:18px 24px;flex:1;overflow-y:auto}
+.modal-content-area h4{font-size:13px;font-weight:700;color:var(--g700);margin-bottom:8px}
+.modal-content-text{font-size:13px;line-height:1.85;color:var(--g700);white-space:pre-wrap;background:var(--g50);border-radius:8px;padding:14px;max-height:260px;overflow-y:auto}
+.modal-footer{padding:14px 24px;border-top:1px solid var(--g200);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff;border-radius:0 0 16px 16px}
+
+/* ── Selected Job Banner ── */
+#selected-job-banner{background:var(--pl);border-bottom:1px solid #C7D2FE}
+.sjb-inner{max-width:960px;margin:0 auto;padding:9px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sjb-label{font-size:12px;color:var(--p);font-weight:700}
+.sjb-title{font-size:13px;font-weight:700;color:var(--g900)}
+.sjb-co{font-size:12px;color:var(--g500)}
+.sjb-clear{background:none;border:1px solid #A5B4FC;cursor:pointer;color:var(--p);font-size:11px;font-weight:600;margin-left:auto;padding:3px 9px;border-radius:5px;transition:all .15s}
+.sjb-clear:hover{background:var(--p);color:#fff}
+
+/* ── Portfolio Tab (Step flow) ── */
+#prog-bar{background:#fff;border-bottom:1px solid var(--g200);padding:14px 24px}
+.steps{display:flex;align-items:center;max-width:720px;margin:0 auto}
+.si{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;position:relative}
+.si:not(:last-child)::after{content:'';position:absolute;top:15px;left:50%;width:100%;height:2px;background:var(--g200);z-index:0;transition:background .4s}
+.si.done:not(:last-child)::after,.si.active:not(:last-child)::after{background:var(--p)}
+.sc{width:30px;height:30px;border-radius:50%;border:2px solid var(--g300);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--g500);z-index:1;position:relative;transition:all .3s}
+.si.active .sc{border-color:var(--p);color:var(--p);background:var(--pl)}
+.si.done .sc{border-color:var(--p);background:var(--p);color:#fff}
+.sl{font-size:10px;color:var(--g500);text-align:center;font-weight:500;white-space:nowrap}
+.si.active .sl{color:var(--p);font-weight:700}
+.si.done .sl{color:var(--p)}
+
+main{max-width:780px;margin:24px auto;padding:0 18px}
+.scard{background:#fff;border-radius:16px;border:1px solid var(--g200);overflow:hidden;margin-bottom:14px;animation:slideIn .35s ease}
+.scard.hidden{display:none}
+@keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.sh{padding:18px 22px;display:flex;align-items:center;gap:12px}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.sh h2{font-size:15px;font-weight:700}
+.sh p{font-size:12px;color:var(--g500);margin-top:2px}
+.sb{padding:0 22px 22px}
+
+.tabs{display:flex;gap:3px;background:var(--g100);border-radius:9px;padding:3px;margin-bottom:18px}
+.tab{flex:1;padding:7px 14px;border:none;background:none;border-radius:7px;font-size:13px;font-weight:500;color:var(--g500);cursor:pointer;transition:all .2s}
+.tab.active{background:#fff;color:var(--g900);box-shadow:0 1px 3px rgba(0,0,0,.09)}
+.tc{display:none}.tc.active{display:block}
+
+.uzone{border:2px dashed var(--g300);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.uzone:hover,.uzone.drag-over{border-color:var(--p);background:var(--pl)}
+.uzone .icon{font-size:34px;margin-bottom:10px}
+.uzone h3{font-size:14px;font-weight:600;margin-bottom:5px}
+.uzone p{font-size:12px;color:var(--g500)}
+.uzone input[type="file"]{display:none}
+.flist{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:12px}
+.fchip{background:var(--pl);color:var(--p);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px}
+.fchip button{background:none;border:none;cursor:pointer;color:var(--p);font-size:15px;line-height:1;padding:0}
+
+.ig{margin-bottom:14px}
+.ig label{display:block;font-size:12px;font-weight:700;color:var(--g700);margin-bottom:5px}
+input[type="text"],input[type="url"],textarea{width:100%;padding:9px 13px;border:1px solid var(--g300);border-radius:8px;font-size:13px;color:var(--g900);background:#fff;outline:none;font-family:inherit;transition:border .2s}
+input[type="text"]:focus,input[type="url"]:focus,textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+textarea{resize:vertical;min-height:90px}
+
+.btn{padding:9px 18px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-p{background:var(--p);color:#fff}.btn-p:not(:disabled):hover{background:var(--pd)}
+.btn-s{background:var(--g100);color:var(--g700)}.btn-s:hover{background:var(--g200)}
+.btn-o{background:#fff;color:var(--p);border:1.5px solid var(--p)}.btn-o:hover{background:var(--pl)}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-xs{padding:5px 10px;font-size:11px;border-radius:6px}
+
+.pcard{background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:14px;margin-bottom:14px}
+.pcard h4{font-size:12px;font-weight:700;color:var(--g700);margin-bottom:8px}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{background:var(--pl);color:var(--p);border-radius:5px;padding:2px 9px;font-size:11px;font-weight:500}
+
+.rtabs{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
+.rtab{padding:7px 16px;border:1.5px solid var(--g300);border-radius:8px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--g700)}
+.rtab.active{border-color:var(--p);background:var(--pl);color:var(--p)}
+.retro-project-card{border:1px solid var(--g200);border-radius:12px;padding:18px;margin-bottom:18px;background:var(--g50)}
+.retro-project-title{font-size:13px;font-weight:700;color:var(--p);margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:7px}
+.retro-project-badge{background:var(--p);color:#fff;border-radius:12px;padding:2px 9px;font-size:11px;font-weight:700}
+
+.chat-wrap{border:1px solid var(--g200);border-radius:12px;overflow:hidden}
+.chat-msgs{min-height:180px;max-height:380px;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;background:var(--g50);scroll-behavior:smooth}
+.cmsg{max-width:82%}
+.cmsg.ai{align-self:flex-start}.cmsg.user{align-self:flex-end}
+.clabel{font-size:10px;color:var(--g400);margin-bottom:3px;font-weight:700}
+.cbubble{padding:11px 15px;border-radius:12px;font-size:13px;line-height:1.6}
+.cmsg.ai .cbubble{background:#fff;border:1px solid var(--g200);border-radius:4px 12px 12px 12px;color:var(--g900)}
+.cmsg.user .cbubble{background:var(--p);color:#fff;border-radius:12px 12px 4px 12px}
+.typing{display:inline-flex;gap:4px;padding:11px 15px;background:#fff;border:1px solid var(--g200);border-radius:4px 12px 12px 12px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--g400);animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+.chat-in{padding:14px;background:#fff;border-top:1px solid var(--g200);display:flex;gap:8px}
+.chat-in textarea{flex:1;min-height:56px;max-height:110px;resize:none;margin:0}
+.qbadge{font-size:11px;color:var(--g500);background:var(--g100);padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px}
+
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.tcard{border:2px solid var(--g200);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;text-align:left;background:#fff}
+.tcard:hover{border-color:var(--p);background:var(--pl)}
+.tcard.sel{border-color:var(--p);background:var(--pl)}
+.ticon{font-size:26px;margin-bottom:9px}
+.tcard h3{font-size:14px;font-weight:700;margin-bottom:3px}
+.tcard p{font-size:11px;color:var(--g500)}
+
+.jtabs{display:flex;gap:3px;background:var(--g100);border-radius:8px;padding:3px;margin-bottom:14px}
+.jtab{flex:1;padding:7px;border:none;background:none;border-radius:6px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .2s}
+.jtab.active{background:#fff;color:var(--g900);box-shadow:0 1px 2px rgba(0,0,0,.07)}
+
+.jd-option{border:1px solid var(--g200);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--g50)}
+.jd-option p{font-size:12px;color:var(--g500);margin-top:4px;line-height:1.5}
+
+.track-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+.track-a{background:#ECFDF5;color:#065F46;border:1px solid #6EE7B7}
+.track-b{background:var(--pl);color:var(--p);border:1px solid #A5B4FC}
+
+/* ── Generation overlay ── */
+#gen-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center}
+#gen-overlay.show{display:flex}
+.gen-box{background:#fff;border-radius:20px;padding:40px 48px;text-align:center;max-width:340px}
+.gen-box .big-spin{width:52px;height:52px;border:4px solid var(--g200);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 18px}
+.gen-box h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.gen-box p{font-size:13px;color:var(--g500);line-height:1.6}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--g900);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;max-width:300px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.err{background:var(--err)}.toast.ok{background:var(--ok)}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+
+/* ── Result Page (fixed overlay) ── */
+#result-page{display:none;position:fixed;inset:0;z-index:400;overflow-y:auto;background:var(--g50)}
+#result-page.vis{display:block}
+.rh{background:#fff;border-bottom:1px solid var(--g200);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:10}
+.rh h2{font-size:17px;font-weight:700}
+.rh p{font-size:12px;color:var(--g500);margin-top:2px}
+.ract{display:flex;gap:7px;flex-wrap:wrap}
+.pw{max-width:820px;margin:28px auto;padding:0 18px 60px}
+.pbox{background:#fff;border-radius:16px;border:1px solid var(--g200);padding:36px}
+
+/* ── Portfolio result styles ── */
+.pbox .portfolio-content .section{margin-bottom:32px}
+.pbox .portfolio-content .section:last-child{margin-bottom:0}
+.pbox .portfolio-content .section-title{font-size:16px;font-weight:800;color:var(--g900);padding-bottom:10px;border-bottom:2.5px solid var(--p);margin-bottom:16px;display:block}
+.pbox .portfolio-content .item{background:var(--g50);border-radius:12px;padding:20px;margin-bottom:12px;border:1px solid var(--g200);position:relative}
+.pbox .portfolio-content .proj-card{border-left:4px solid var(--p)}
+.pbox .portfolio-content h3{font-size:15px;font-weight:700;margin-bottom:8px;color:var(--g900)}
+.pbox .portfolio-content h4{font-size:13px;font-weight:700;color:var(--p);margin:14px 0 6px}
+.pbox .portfolio-content p{font-size:13px;line-height:1.8;color:var(--g700);margin-bottom:6px}
+.pbox .portfolio-content ul{padding-left:18px;margin-top:6px;margin-bottom:6px}
+.pbox .portfolio-content ul li{font-size:13px;line-height:1.85;color:var(--g700)}
+.pbox .portfolio-content table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;border-radius:10px;overflow:hidden;border:1px solid #BFDBFE}
+.pbox .portfolio-content th{background:#DBEAFE;color:#1E3A8A;padding:11px 14px;text-align:left;font-weight:700;border-bottom:2px solid #93C5FD;border-right:1px solid #BFDBFE;font-size:12px;letter-spacing:.2px}
+.pbox .portfolio-content th:last-child{border-right:none}
+.pbox .portfolio-content td{padding:10px 14px;border-bottom:1px solid #E5E7EB;border-right:1px solid #E5E7EB;color:#111827;line-height:1.7;background:#fff}
+.pbox .portfolio-content td:last-child{border-right:none}
+.pbox .portfolio-content tr:last-child td{border-bottom:none}
+.pbox .portfolio-content tr:nth-child(even) td{background:#F0F7FF}
+.pbox .portfolio-content .kw{color:var(--p);font-weight:700;background:var(--pl);padding:1px 5px;border-radius:3px}
+.pbox .portfolio-content .tech-tag{display:inline-block;background:var(--g100);color:var(--g700);border-radius:5px;padding:3px 9px;font-size:11px;margin:2px;font-weight:600}
+.pbox .portfolio-content .kw-tag{display:inline-block;background:#F0FDF4;color:#16A34A;border-radius:20px;padding:3px 10px;font-size:11px;margin:2px;font-weight:600;border:1px solid #86EFAC}
+.pbox .portfolio-content .s8 .item{background:#FFF8F0;border:1.5px solid #FCD9A0;border-left:4px solid #F59E0B}
+.pbox .portfolio-content .s8 .item h3{color:#92400E}
+.pbox .portfolio-content .s8 .item p,.pbox .portfolio-content .s8 .item li{color:#78350F}
+.pbox .portfolio-content .s8 .item strong{color:#B45309}
+.pbox .portfolio-content .lack-badge{display:inline-block;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-bottom:7px}
+
+.copy-card-btn{position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--g300);background:#fff;font-size:11px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .2s}
+.copy-card-btn:hover{border-color:var(--p);color:var(--p)}
+
+.ok-banner{background:#ECFDF5;border:1px solid #6EE7B7;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;font-weight:600;color:#065F46}
+
+.jd-autofill-banner{background:var(--pl);border:1px solid #A5B4FC;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;font-weight:600;color:var(--pd)}
+
+@media print{
+  header,#history-section,#main-tab-bar,.scard,.rh{display:none!important}
+  .pw{margin:0;padding:0;max-width:100%}
+  .pbox{border:none;border-radius:0}
+  .copy-card-btn{display:none}
+}
+@media(max-width:600px){
+  .tgrid{grid-template-columns:1fr}
+  main,.pw,.tab-inner{padding:0 12px}
+  .pbox{padding:18px}
+  .rh{flex-direction:column;align-items:flex-start}
+  .main-tab{font-size:12px;padding:12px 10px}
+  .job-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo">P</div>
+  <div class="hd">
+    <h1>포트폴로그 | Portfo-Log</h1>
+    <p>채용공고 탐색 → 경험 정제 → 맞춤 포트폴리오 완성</p>
+  </div>
+</header>
+
+<!-- ── Recent Portfolio History ── -->
+<div id="history-section">
+  <div class="hist-inner">
+    <div class="hist-header">
+      <h3>📂 최근 생성 포트폴리오</h3>
+      <button class="btn btn-xs btn-s" onclick="loadHistory()">↺ 새로고침</button>
+    </div>
+    <div id="history-list" class="hist-cards">
+      <div class="hist-empty">아직 생성된 포트폴리오가 없습니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Tab Bar ── -->
+<div id="main-tab-bar">
+  <div class="main-tabs-wrap">
+    <button class="main-tab active" data-tab="seoul" onclick="switchMainTab('seoul',this)">🏙️ 서울시 채용공고</button>
+    <button class="main-tab" data-tab="saramin" onclick="switchMainTab('saramin',this)">🔍 사람인 채용공고</button>
+    <button class="main-tab" data-tab="portfolio" onclick="switchMainTab('portfolio',this)">✨ 맞춤 포트폴리오 생성</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TAB 1 — Seoul Jobs -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="tab-seoul" class="main-tc active">
+  <div class="tab-inner">
+    <div class="tab-top-bar">
+      <h2>🏙️ 서울시 채용공고</h2>
+      <p>서울 열린데이터광장 기반 공공기관 채용공고입니다. 공고를 클릭하면 상세 내용을 확인하고 바로 포트폴리오를 만들 수 있습니다.</p>
+    </div>
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="seoul-filter-bar">
+      <div class="filter-row">
+        <div class="fg fg-kw">
+          <label>🔍 키워드 검색</label>
+          <input class="filter-input" id="sf-keyword" type="text"
+                 placeholder="직무명, 기업명으로 검색 (전체 공고 대상)…"
+                 onkeydown="if(event.key==='Enter')doSeoulSearch()">
+        </div>
+        <div class="filter-divider"></div>
+        <div class="fg">
+          <label>경력</label>
+          <select class="filter-select" id="sf-career" onchange="onSeoulDropdownChange()">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>고용형태</label>
+          <select class="filter-select" id="sf-emptype" onchange="onSeoulDropdownChange()">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>학력</label>
+          <select class="filter-select" id="sf-edu" onchange="onSeoulDropdownChange()">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>근무시간대</label>
+          <select class="filter-select" id="sf-worktime" onchange="onSeoulDropdownChange()">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>지역</label>
+          <select class="filter-select" id="sf-region" onchange="onSeoulDropdownChange()">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-p btn-sm" onclick="doSeoulSearch()">검색</button>
+          <button class="btn btn-s btn-sm" onclick="resetSeoulFilters()">초기화</button>
+        </div>
+      </div>
+      <div id="seoul-filter-status" style="display:none" class="filter-status"></div>
+    </div>
+
+    <div id="seoul-state" class="job-state">
+      <div class="spin-lg"></div>
+      <p>공고를 불러오는 중...</p>
+    </div>
+    <div id="seoul-jobs" class="job-grid"></div>
+    <div id="seoul-pagination" class="pagination" style="display:none"></div>
+    <p id="seoul-pg-info" class="pg-info" style="display:none"></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TAB 2 — Saramin Jobs -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="tab-saramin" class="main-tc">
+  <div class="tab-inner">
+    <div class="tab-top-bar">
+      <h2>🔍 사람인 채용공고</h2>
+      <p>사람인 API 기반 채용공고입니다. 공고를 클릭하면 상세 내용을 확인하고 포트폴리오를 바로 만들 수 있습니다.</p>
+      <div id="saramin-dummy-badge" class="dummy-badge" style="display:none">⚠️ SARAMIN_API_KEY 미설정 — 샘플 데이터로 표시 중</div>
+    </div>
+    <div id="saramin-state" class="job-state">
+      <div class="spin-lg"></div>
+      <p>공고를 불러오는 중...</p>
+    </div>
+    <div id="saramin-jobs" class="job-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- TAB 3 — Portfolio Generation -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="tab-portfolio" class="main-tc">
+
+  <!-- Selected job banner (visible when a job is brought from Tab 1/2) -->
+  <div id="selected-job-banner" style="display:none">
+    <div class="sjb-inner">
+      <span class="sjb-label">🎯 선택된 채용공고:</span>
+      <strong class="sjb-title" id="sjb-title"></strong>
+      <span class="sjb-co" id="sjb-co"></span>
+      <button class="sjb-clear" onclick="clearSelectedJob()">✕ 초기화</button>
+    </div>
+  </div>
+
+  <!-- Step progress bar -->
+  <div id="prog-bar">
+    <div class="steps">
+      <div class="si active" id="p1"><div class="sc">1</div><div class="sl">프로젝트 업로드</div></div>
+      <div class="si" id="p2"><div class="sc">2</div><div class="sl">회고&amp;인터뷰</div></div>
+      <div class="si" id="p3"><div class="sc">3</div><div class="sl">양식 선택</div></div>
+      <div class="si" id="p4"><div class="sc">4</div><div class="sl">포트폴리오 생성</div></div>
+    </div>
+  </div>
+
+  <!-- Steps 1–4 -->
+  <main id="main">
+
+    <!-- STEP 1 -->
+    <div class="scard" id="s1">
+      <div class="sh"><div class="sn">1</div><div><h2>프로젝트 업로드</h2><p>파일 업로드, 노션 링크, 텍스트 직접 입력 중 하나를 선택하세요</p></div></div>
+      <div class="sb">
+        <div class="tabs">
+          <button class="tab active" onclick="uTab('file',this)">📁 파일 업로드</button>
+          <button class="tab" onclick="uTab('notion',this)">🔗 노션 링크</button>
+          <button class="tab" onclick="uTab('text',this)">✏️ 텍스트 입력</button>
+        </div>
+        <div class="tc active" id="tc-file">
+          <div class="uzone" id="dzone" onclick="document.getElementById('fi').click()">
+            <div class="icon">📂</div>
+            <h3>클릭하거나 파일을 드래그하세요</h3>
+            <p>PPT · PPTX · PDF · 여러 파일 동시 업로드 가능</p>
+            <input type="file" id="fi" accept=".ppt,.pptx,.pdf" multiple onchange="addFiles(this.files)">
+            <div class="flist" id="flist"></div>
+          </div>
+          <div style="margin-top:14px;text-align:right">
+            <button class="btn btn-p" id="ubtn" onclick="doUploadFile()" disabled>
+              <span id="ubtn-t">파일 업로드 &amp; 분석</span>
+            </button>
+          </div>
+        </div>
+        <div class="tc" id="tc-notion">
+          <div class="ig"><label>노션 페이지 URL</label>
+            <input type="url" id="nurl" placeholder="https://www.notion.so/your-page-...">
+          </div>
+          <div style="text-align:right">
+            <button class="btn btn-p" id="nbtn" onclick="doUploadNotion()">
+              <span id="nbtn-t">링크 분석</span>
+            </button>
+          </div>
+        </div>
+        <div class="tc" id="tc-text">
+          <div class="ig"><label>프로젝트 내용 직접 입력</label>
+            <textarea id="raw-text" placeholder="프로젝트 설명, 역할, 사용 기술, 성과 등을 자유롭게 입력하세요.&#10;&#10;예시)&#10;프로젝트명: 쇼핑몰 리뉴얼&#10;역할: 프론트엔드 개발&#10;기술: React, TypeScript, Tailwind CSS&#10;성과: 페이지 로딩 속도 40% 개선, MAU 2만 달성" style="min-height:220px"></textarea>
+          </div>
+          <div style="text-align:right">
+            <button class="btn btn-p" id="tbtn" onclick="doUploadText()">
+              <span id="tbtn-t">텍스트 분석</span>
+            </button>
+          </div>
+        </div>
+        <div id="parsed-ok" style="display:none;margin-top:18px">
+          <div class="ok-banner">✅ 포트폴리오 분석 완료! AI가 아래 내용을 추출했습니다.</div>
+          <div id="parsed-out"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="scard hidden" id="s2">
+      <div class="sh"><div class="sn">2</div><div><h2>회고 입력 &amp; AI 인터뷰</h2><p>프로젝트별 회고를 작성하고 AI 꼬리질문에 답변하세요</p></div></div>
+      <div class="sb">
+        <div id="ss-retro">
+          <h3 style="font-size:14px;font-weight:700;margin-bottom:6px">📝 회고 방식 선택</h3>
+          <p style="font-size:12px;color:var(--g500);margin-bottom:14px">업로드한 프로젝트별로 각각 작성합니다</p>
+          <div class="rtabs">
+            <button class="rtab" onclick="selRetro('KPT',this)">KPT</button>
+            <button class="rtab" onclick="selRetro('4F',this)">4F</button>
+            <button class="rtab" onclick="selRetro('4L',this)">4L</button>
+          </div>
+          <div id="retro-forms-wrap"></div>
+          <div style="display:flex;gap:9px;margin-top:6px;flex-wrap:wrap">
+            <button class="btn btn-p" id="retro-go" onclick="saveRetroAndInterview()" style="display:none">저장 후 AI 인터뷰 시작 →</button>
+            <button class="btn btn-s" onclick="skipRetro()">회고 건너뛰기 →</button>
+          </div>
+        </div>
+        <div id="ss-interview" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <h3 style="font-size:14px;font-weight:700">🤖 AI 심층 인터뷰</h3>
+            <div class="qbadge">질문 <strong id="qnum">1</strong> / <strong id="qtot">3</strong></div>
+          </div>
+          <div class="chat-wrap">
+            <div class="chat-msgs" id="chat-msgs"></div>
+            <div class="chat-in" id="chat-in">
+              <textarea id="ans" placeholder="답변을 입력하세요… (Ctrl+Enter로 전송)" onkeydown="ansKey(event)"></textarea>
+              <button class="btn btn-p" id="ansbtn" onclick="submitAns()">전송</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="scard hidden" id="s3">
+      <div class="sh"><div class="sn">3</div><div><h2>포트폴리오 양식 선택</h2><p>지원 직군에 맞는 형식을 선택하세요</p></div></div>
+      <div class="sb">
+        <div class="tgrid">
+          <div class="tcard" onclick="selType('developer',this)"><div class="ticon">💻</div><h3>개발자</h3><p>기술스택 · 프로젝트 · 성과 중심</p></div>
+          <div class="tcard" onclick="selType('planner',this)"><div class="ticon">📋</div><h3>기획자</h3><p>서비스기획 · 리서치 · 지표 중심</p></div>
+          <div class="tcard" onclick="selType('designer',this)"><div class="ticon">🎨</div><h3>디자이너</h3><p>프로젝트 · 툴 · 결과물 중심</p></div>
+          <div class="tcard" onclick="selType('marketer',this)"><div class="ticon">📈</div><h3>마케터</h3><p>캠페인 · 성과지표 · 채널 중심</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="scard hidden" id="s4">
+      <div class="sh"><div class="sn">4</div><div><h2>포트폴리오 생성</h2><p>바로 생성하거나 채용공고를 추가해 맞춤형으로 만드세요</p></div></div>
+      <div class="sb">
+
+        <div id="jd-autofill-banner" class="jd-autofill-banner" style="display:none">
+          🎯 선택한 채용공고가 자동 입력되었습니다. 아래 내용을 확인 후 맞춤형으로 생성하세요.
+        </div>
+
+        <!-- TRACK A -->
+        <div class="jd-option" id="opt-a" style="border:2px solid var(--ok);background:#F0FDF4">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#065F46">✅ 경험 정제 카드 생성 (기본)</div>
+              <p>채용공고 없이 내 경험을 포트폴리오에 바로 쓸 수 있는 문장으로 정제합니다.<br>프로젝트별 한 줄 요약 · 문제해결 · 성과 · 키워드 태그 포함.</p>
+            </div>
+            <button class="btn btn-sm" style="background:#10B981;color:#fff;flex-shrink:0" onclick="doGenerate(false)">
+              <span id="genbtn-a-t">바로 생성 →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TRACK B -->
+        <div class="jd-option" id="opt-b">
+          <div style="font-size:13px;font-weight:700;color:var(--g900);margin-bottom:8px">🎯 채용공고 맞춤형 생성 (선택)</div>
+          <p style="margin-bottom:14px">채용공고를 입력하면 키워드 매핑 + Fit 분석이 추가됩니다.</p>
+          <div class="ig"><label>지원 직무명</label>
+            <input type="text" id="jobt" placeholder="예: 퍼포먼스 마케터, 백엔드 개발자">
+          </div>
+          <div class="jtabs">
+            <button class="jtab active" data-jid="url" onclick="jTab('url',this)">🔗 URL로 입력</button>
+            <button class="jtab" data-jid="text" onclick="jTab('text',this)">✏️ 직접 입력</button>
+          </div>
+          <div id="jt-url">
+            <div class="ig"><label>채용공고 URL</label>
+              <div style="display:flex;gap:7px">
+                <input type="url" id="joburl" placeholder="https://..." style="flex:1">
+                <button class="btn btn-s btn-sm" id="scrbtn" onclick="scrapeJob()">불러오기</button>
+              </div>
+            </div>
+            <div id="job-preview" style="display:none">
+              <div class="pcard">
+                <h4>📄 채용공고 미리보기</h4>
+                <p id="job-prev-txt" style="font-size:12px;color:var(--g500);max-height:140px;overflow-y:auto;margin-top:6px;line-height:1.65;white-space:pre-wrap"></p>
+              </div>
+            </div>
+          </div>
+          <div id="jt-text" style="display:none">
+            <div class="ig"><label>채용공고 텍스트</label>
+              <textarea id="jobtxt" placeholder="채용공고 내용을 붙여넣어주세요..." style="min-height:160px"></textarea>
+            </div>
+          </div>
+          <div style="margin-top:14px;text-align:right">
+            <button class="btn btn-p" onclick="doGenerate(true)">
+              <span id="genbtn-b-t">✨ 맞춤형으로 생성</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div><!-- #tab-portfolio -->
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- Result Page (fixed full-screen overlay) -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="result-page">
+  <div class="rh">
+    <div>
+      <h2>🎉 포트폴리오 생성 완료</h2>
+      <p id="rsub"></p>
+    </div>
+    <div class="ract">
+      <button class="btn btn-s btn-sm" onclick="startOver()">↩ 처음으로</button>
+      <button class="btn btn-o btn-sm" onclick="copyAll()">📋 전체 복사</button>
+      <button class="btn btn-p btn-sm" onclick="window.print()">🖨️ PDF 저장</button>
+    </div>
+  </div>
+  <div class="pw"><div class="pbox" id="pf-out"></div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- Job Detail Modal -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="job-modal" class="modal-overlay" style="display:none" onclick="modalBackdropClick(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="jm-title"></h2>
+      <button class="modal-close" onclick="closeJobModal()">✕</button>
+    </div>
+    <div class="modal-meta-row" id="jm-meta"></div>
+    <div class="modal-content-area">
+      <h4>📄 공고 상세 내용</h4>
+      <div class="modal-content-text" id="jm-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-s btn-sm" onclick="closeJobModal()">닫기</button>
+      <button class="btn btn-p btn-sm" onclick="useJobForPortfolio()">✨ 이 공고로 포트폴리오 생성 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generation loading overlay -->
+<div id="gen-overlay">
+  <div class="gen-box">
+    <div class="big-spin"></div>
+    <h3>포트폴리오 생성 중…</h3>
+    <p>AI가 경험을 분석하고<br>포트폴리오 문장을 작성하고 있습니다.<br><br>약 1분 소요됩니다.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const S = {
+  sid: null, step: 1, retroType: null, pfType: null,
+  jobPosting: '', files: [], projects: [],
+  selectedJob: null,
+};
+
+const historyStore = {};
+
+const RETRO_FIELDS = {
+  KPT: [
+    {id:'Keep',    label:'Keep · 만족스러운 점',       placeholder:'다음에도 유지하고 싶은 것들...'},
+    {id:'Problem', label:'Problem · 아쉬운 점',        placeholder:'개선이 필요했던 부분...'},
+    {id:'Try',     label:'Try · 해결 방안',            placeholder:'다음에 시도할 행동...'},
+  ],
+  '4F': [
+    {id:'Facts',    label:'Facts · 어떤 일이 있었는가',  placeholder:'사실 중심으로...'},
+    {id:'Feelings', label:'Feelings · 어떤 감정을 느꼈는가', placeholder:'느꼈던 감정...'},
+    {id:'Findings', label:'Findings · 어떤 인사이트를 얻었는가', placeholder:'인사이트·교훈...'},
+    {id:'Future',   label:'Future · 앞으로 어떻게 적용할 것인가', placeholder:'적용 계획...'},
+  ],
+  '4L': [
+    {id:'Liked',      label:'Liked · 즐거웠던 부분',        placeholder:'흥미롭고 즐거웠던 것...'},
+    {id:'Learned',    label:'Learned · 새롭게 배운 것',     placeholder:'습득한 기술/지식...'},
+    {id:'Lacked',     label:'Lacked · 역량의 한계',         placeholder:'부족했던 부분...'},
+    {id:'Longed for', label:'Longed for · 필요했던 것',     placeholder:'더 필요했던 것...'},
+  ],
+};
+
+// ── Main Tab Switching ─────────────────────────────────────────────────────────
+function switchMainTab(name, el) {
+  document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+  if (el) {
+    el.classList.add('active');
+  } else {
+    document.querySelectorAll('.main-tab').forEach(t => {
+      if (t.getAttribute('data-tab') === name) t.classList.add('active');
+    });
+  }
+  document.querySelectorAll('.main-tc').forEach(t => {
+    t.style.display = 'none'; t.classList.remove('active');
+  });
+  const tc = document.getElementById('tab-' + name);
+  if (tc) { tc.style.display = 'block'; tc.classList.add('active'); }
+
+  // Lazy-load job tabs
+  if (name === 'seoul' && !seoulLoaded) loadSeoulJobs();
+  if (name === 'saramin' && !saraminLoaded) loadSaraminJobs();
+}
+
+// ── Job Listings: Seoul ────────────────────────────────────────────────────────
+let seoulLoaded = false;
+let saraminLoaded = false;
+const _seoulJobs = [];      // currently displayed page slice
+const _saraminJobs = [];
+const _seoulRawJobs = [];   // full fetched batch (30 or 200)
+let _seoulFilteredJobs = [];
+let _seoulTotal = 0;
+let _seoulServerPage = 1;
+let _seoulVirtualPage = 1;
+let _seoulMode = 'server';  // 'server' | 'filtered'
+const SEOUL_PER_PAGE = 30;
+
+const seoulFilters = { keyword: '', career: '', empType: '', education: '', workTime: '', region: '' };
+
+// Entry: normal server-side pagination (no filters)
+async function loadSeoulJobs(page = 1) {
+  seoulLoaded = true;
+  _seoulMode = 'server';
+  _seoulServerPage = page;
+  await _fetchSeoulJobs({ page, per_page: SEOUL_PER_PAGE });
+}
+
+// Entry: keyword search button / Enter → fetch 200 items, filter client-side
+async function doSeoulSearch() {
+  const kw = document.getElementById('sf-keyword').value.trim();
+  seoulFilters.keyword = kw;
+  _seoulMode = 'filtered';
+  _seoulVirtualPage = 1;
+  await _fetchSeoulJobs({ page: 1, per_page: 200 });
+}
+
+// Entry: any dropdown changes → switch to filtered mode if needed, re-filter
+async function onSeoulDropdownChange() {
+  seoulFilters.career   = document.getElementById('sf-career').value;
+  seoulFilters.empType  = document.getElementById('sf-emptype').value;
+  seoulFilters.education = document.getElementById('sf-edu').value;
+  seoulFilters.workTime = document.getElementById('sf-worktime').value;
+  seoulFilters.region   = document.getElementById('sf-region').value;
+
+  const hasDropdown = seoulFilters.career || seoulFilters.empType ||
+                      seoulFilters.education || seoulFilters.workTime || seoulFilters.region;
+
+  if (hasDropdown && _seoulMode === 'server') {
+    // First dropdown use → fetch 200 items to give wider coverage
+    _seoulMode = 'filtered';
+    _seoulVirtualPage = 1;
+    await _fetchSeoulJobs({ page: 1, per_page: 200 });
+  } else {
+    _seoulVirtualPage = 1;
+    _applySeoulFilters();
+  }
+}
+
+// Paginate within filtered results
+function goSeoulPage(page) {
+  if (_seoulMode === 'filtered') {
+    _seoulVirtualPage = page;
+    _applySeoulFilters();
+  } else {
+    loadSeoulJobs(page);
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function _fetchSeoulJobs({ page, per_page }) {
+  _setSeoulLoading(true);
+  try {
+    const params = new URLSearchParams({ page, per_page });
+    const r = await fetch(`/api/jobs/seoul?${params}`);
+    const d = await r.json();
+
+    if (d.error || !d.jobs || !d.jobs.length) {
+      _setSeoulError(d.error || '공고를 찾을 수 없습니다.');
+      return;
+    }
+
+    _seoulRawJobs.length = 0;
+    d.jobs.forEach(j => _seoulRawJobs.push(j));
+    _seoulTotal = d.total || d.jobs.length;
+
+    _populateAllFilterDropdowns(_seoulRawJobs);
+
+    if (_seoulMode === 'filtered') {
+      _seoulVirtualPage = _seoulVirtualPage || 1;
+      _applySeoulFilters();
+    } else {
+      _seoulJobs.length = 0;
+      _seoulRawJobs.forEach(j => _seoulJobs.push(j));
+      _setSeoulLoading(false);
+      _renderSeoulCards(_seoulJobs);
+      _renderSeoulPagination(_seoulTotal, page, SEOUL_PER_PAGE);
+    }
+  } catch(e) {
+    _setSeoulError('데이터를 불러오지 못했습니다.');
+  }
+}
+
+function _applySeoulFilters() {
+  _seoulFilteredJobs = _seoulRawJobs.filter(j => {
+    if (seoulFilters.keyword) {
+      const kw = seoulFilters.keyword.toLowerCase();
+      const title = (j.JO_SJ || '').toLowerCase();
+      const company = (j.CMPNY_NM || '').toLowerCase();
+      const desc = (j.DTY_CN || '').toLowerCase();
+      if (!title.includes(kw) && !company.includes(kw) && !desc.includes(kw)) return false;
+    }
+    if (seoulFilters.career && j.CAREER_CND_NM !== seoulFilters.career) return false;
+    if (seoulFilters.empType && j.EMPLYM_STLE_CMMN_MM !== seoulFilters.empType) return false;
+    if (seoulFilters.education && j.ACDMCR_NM !== seoulFilters.education) return false;
+    if (seoulFilters.workTime && j.WORK_TM_NM !== seoulFilters.workTime) return false;
+    if (seoulFilters.region) {
+      const addr = (j.WORK_PARAR_BASS_ADRES_CN || j.BASS_ADRES_CN || '');
+      if (!addr.startsWith(seoulFilters.region)) return false;
+    }
+    return true;
+  });
+
+  const start = (_seoulVirtualPage - 1) * SEOUL_PER_PAGE;
+  const pageSlice = _seoulFilteredJobs.slice(start, start + SEOUL_PER_PAGE);
+
+  _seoulJobs.length = 0;
+  pageSlice.forEach(j => _seoulJobs.push(j));
+
+  _setSeoulLoading(false);
+  _renderSeoulCards(pageSlice);
+  _renderSeoulPagination(_seoulFilteredJobs.length, _seoulVirtualPage, SEOUL_PER_PAGE);
+  _renderSeoulFilterStatus();
+}
+
+function _populateAllFilterDropdowns(jobs) {
+  const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
+  const fill = (id, opts, selected) => {
+    const el = document.getElementById(id);
+    el.innerHTML = '<option value="">전체</option>' +
+      opts.map(o => `<option value="${esc(o)}" ${o === selected ? 'selected' : ''}>${esc(o)}</option>`).join('');
+  };
+
+  fill('sf-career',  uniq(jobs.map(j => j.CAREER_CND_NM)),    seoulFilters.career);
+  fill('sf-emptype', uniq(jobs.map(j => j.EMPLYM_STLE_CMMN_MM)), seoulFilters.empType);
+  fill('sf-edu',     uniq(jobs.map(j => j.ACDMCR_NM)),        seoulFilters.education);
+  fill('sf-worktime',uniq(jobs.map(j => j.WORK_TM_NM)),       seoulFilters.workTime);
+  fill('sf-region',
+    uniq(jobs.map(j => (j.WORK_PARAR_BASS_ADRES_CN || j.BASS_ADRES_CN || '').split(' ')[0])
+      .filter(v => v.length >= 2)),
+    seoulFilters.region
+  );
+}
+
+function _renderSeoulCards(jobs) {
+  if (!jobs.length) {
+    document.getElementById('seoul-jobs').innerHTML =
+      '<p style="grid-column:1/-1;text-align:center;color:var(--g400);padding:32px">해당 조건의 공고가 없습니다.</p>';
+    return;
+  }
+  document.getElementById('seoul-jobs').innerHTML = jobs.map((j, i) => `
+    <div class="job-card" onclick="showSeoulJobDetail(${i})">
+      <div class="jc-header">
+        <div class="jc-title">${esc(j.JO_SJ || '공고명 없음')}</div>
+        <div class="jc-org">${esc(j.CMPNY_NM || '')}</div>
+      </div>
+      <div class="jc-meta">
+        ${j.EMPLYM_STLE_CMMN_MM ? `<span class="job-tag tag-type">${esc(j.EMPLYM_STLE_CMMN_MM)}</span>` : ''}
+        ${j.CAREER_CND_NM ? `<span class="job-tag">${esc(j.CAREER_CND_NM)}</span>` : ''}
+        ${j.ACDMCR_NM && j.ACDMCR_NM !== '관계없음' ? `<span class="job-tag">${esc(j.ACDMCR_NM)}</span>` : ''}
+        ${j.WORK_PARAR_BASS_ADRES_CN ? `<span class="job-tag tag-loc">📍 ${esc(j.WORK_PARAR_BASS_ADRES_CN.split(' ').slice(0,2).join(' '))}</span>` : ''}
+      </div>
+      <div class="jc-footer">
+        <span class="jc-deadline">📅 ${esc(j.RCEPT_CLOS_NM || '마감일 미정')}</span>
+        <span class="jc-arrow">→</span>
+      </div>
+    </div>`).join('');
+}
+
+function _renderSeoulPagination(total, current, perPage) {
+  const totalPages = Math.ceil(total / perPage);
+  const pgEl = document.getElementById('seoul-pagination');
+  const infoEl = document.getElementById('seoul-pg-info');
+
+  if (totalPages <= 1) {
+    pgEl.style.display = 'none'; infoEl.style.display = 'none'; return;
+  }
+  pgEl.style.display = 'flex'; infoEl.style.display = 'block';
+
+  const pages = buildPageNums(current, totalPages);
+  let html = `<button class="pg-btn" onclick="goSeoulPage(${current-1})" ${current===1?'disabled':''}>‹ 이전</button>`;
+  pages.forEach(p => {
+    if (p === '…') html += `<span class="pg-ellipsis">…</span>`;
+    else html += `<button class="pg-btn ${p===current?'active':''}" onclick="goSeoulPage(${p})">${p}</button>`;
+  });
+  html += `<button class="pg-btn" onclick="goSeoulPage(${current+1})" ${current===totalPages?'disabled':''}>다음 ›</button>`;
+  pgEl.innerHTML = html;
+
+  const s = (current-1)*perPage+1, e = Math.min(current*perPage, total);
+  infoEl.textContent = `${_seoulMode==='filtered'?'필터 결과':'전체'} ${total.toLocaleString()}개 공고 중 ${s}–${e}번째`;
+}
+
+function _renderSeoulFilterStatus() {
+  const active = Object.entries(seoulFilters).filter(([,v]) => v);
+  const el = document.getElementById('seoul-filter-status');
+  if (!active.length) { el.style.display = 'none'; return; }
+
+  const labels = { keyword:'키워드', career:'경력', empType:'고용형태', education:'학력', workTime:'근무시간대', region:'지역' };
+  el.style.display = 'flex';
+  el.innerHTML = '적용된 필터: ' +
+    active.map(([k, v]) =>
+      `<span class="filter-tag">${labels[k]}: ${esc(v)}
+        <button onclick="clearSeoulFilter('${k}')">✕</button>
+      </span>`
+    ).join('') +
+    ` <span style="color:var(--g500);font-weight:400">(${_seoulFilteredJobs.length.toLocaleString()}개 해당)</span>`;
+}
+
+function clearSeoulFilter(key) {
+  seoulFilters[key] = '';
+  const idMap = { keyword:'sf-keyword', career:'sf-career', empType:'sf-emptype', education:'sf-edu', workTime:'sf-worktime', region:'sf-region' };
+  const el = document.getElementById(idMap[key]);
+  if (el) el.value = '';
+  _seoulVirtualPage = 1;
+  const hasAny = Object.values(seoulFilters).some(v => v);
+  if (!hasAny) { resetSeoulFilters(); return; }
+  _applySeoulFilters();
+}
+
+function resetSeoulFilters() {
+  Object.keys(seoulFilters).forEach(k => seoulFilters[k] = '');
+  ['sf-keyword','sf-career','sf-emptype','sf-edu','sf-worktime','sf-region']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('seoul-filter-status').style.display = 'none';
+  _seoulMode = 'server';
+  _seoulVirtualPage = 1;
+  loadSeoulJobs(1);
+}
+
+function _setSeoulLoading(on) {
+  document.getElementById('seoul-state').style.display = on ? 'block' : 'none';
+  if (on) {
+    document.getElementById('seoul-state').innerHTML = '<div class="spin-lg"></div><p>공고를 불러오는 중...</p>';
+    document.getElementById('seoul-jobs').innerHTML = '';
+    document.getElementById('seoul-pagination').style.display = 'none';
+    document.getElementById('seoul-pg-info').style.display = 'none';
+  }
+}
+
+function _setSeoulError(msg) {
+  document.getElementById('seoul-state').style.display = 'block';
+  document.getElementById('seoul-state').innerHTML =
+    `<div class="job-empty-icon">${msg.includes('API_KEY') ? '🔑' : '📭'}</div><p>${esc(msg)}</p>`;
+}
+
+function buildPageNums(current, total) {
+  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+  const pages = [1];
+  if (current > 3) pages.push('…');
+  for (let p = Math.max(2, current-1); p <= Math.min(total-1, current+1); p++) pages.push(p);
+  if (current < total - 2) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+
+function showSeoulJobDetail(idx) {
+  const job = _seoulJobs[idx];
+  if (!job) return;
+  const content = [
+    job.JO_SJ             && `공고명: ${job.JO_SJ}`,
+    job.CMPNY_NM          && `기업명: ${job.CMPNY_NM}`,
+    job.EMPLYM_STLE_CMMN_MM && `고용형태: ${job.EMPLYM_STLE_CMMN_MM}`,
+    job.CAREER_CND_NM     && `경력: ${job.CAREER_CND_NM}`,
+    job.ACDMCR_NM         && `학력: ${job.ACDMCR_NM}`,
+    job.HOPE_WAGE         && `급여: ${job.HOPE_WAGE}`,
+    job.WORK_PARAR_BASS_ADRES_CN && `근무지: ${job.WORK_PARAR_BASS_ADRES_CN}`,
+    job.WORK_TM_NM        && `근무시간대: ${job.WORK_TM_NM}`,
+    job.HOLIDAY_NM        && `휴일: ${job.HOLIDAY_NM}`,
+    job.JO_FEINSR_SBSCRB_NM && `4대보험: ${job.JO_FEINSR_SBSCRB_NM}`,
+    job.RCEPT_CLOS_NM     && `마감: ${job.RCEPT_CLOS_NM}`,
+    job.GUI_LN            && `요약: ${job.GUI_LN}`,
+    job.DTY_CN            && `\n직무 내용:\n${job.DTY_CN}`,
+  ].filter(Boolean).join('\n');
+
+  openJobModal(
+    job.JO_SJ || '공고명',
+    job.CMPNY_NM || '',
+    [
+      job.EMPLYM_STLE_CMMN_MM && {tag: job.EMPLYM_STLE_CMMN_MM, cls: 'tag-type'},
+      job.CAREER_CND_NM && {tag: job.CAREER_CND_NM},
+      job.ACDMCR_NM && job.ACDMCR_NM !== '관계없음' && {tag: job.ACDMCR_NM},
+      job.WORK_PARAR_BASS_ADRES_CN && {tag: '📍 ' + job.WORK_PARAR_BASS_ADRES_CN.split(' ').slice(0,2).join(' '), cls: 'tag-loc'},
+      job.RCEPT_CLOS_NM && {tag: '📅 ' + job.RCEPT_CLOS_NM},
+    ].filter(Boolean),
+    content
+  );
+}
+
+// ── Job Listings: Saramin ──────────────────────────────────────────────────────
+async function loadSaraminJobs() {
+  saraminLoaded = true;
+  try {
+    const r = await fetch('/api/jobs/saramin');
+    const d = await r.json();
+    if (d.is_dummy) {
+      document.getElementById('saramin-dummy-badge').style.display = 'inline-flex';
+    }
+    if (!d.jobs || d.jobs.length === 0) {
+      document.getElementById('saramin-state').innerHTML =
+        '<div class="job-empty-icon">📭</div><p>공고를 찾을 수 없습니다.</p>';
+      return;
+    }
+    _saraminJobs.length = 0;
+    d.jobs.forEach(j => _saraminJobs.push(j));
+    document.getElementById('saramin-state').style.display = 'none';
+    const grid = document.getElementById('saramin-jobs');
+    grid.innerHTML = d.jobs.map((j, i) => `
+      <div class="job-card" onclick="showSaraminJobDetail(${i})">
+        <div class="jc-header">
+          <div class="jc-title">${esc(j.title || '공고명 없음')}</div>
+          <div class="jc-org">${esc(j.company || '')}</div>
+        </div>
+        <div class="jc-meta">
+          ${j.job_type ? `<span class="job-tag tag-type">${esc(j.job_type)}</span>` : ''}
+          ${j.experience ? `<span class="job-tag">${esc(j.experience)}</span>` : ''}
+          ${j.location ? `<span class="job-tag tag-loc">📍 ${esc(j.location)}</span>` : ''}
+        </div>
+        <div class="jc-footer">
+          <span class="jc-deadline">📅 마감: ${j.deadline ? fmtDate(j.deadline) : '채용 시'}</span>
+          <span class="jc-arrow">→</span>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('saramin-state').innerHTML =
+      '<div class="job-empty-icon">⚠️</div><p>데이터를 불러오지 못했습니다.</p>';
+  }
+}
+
+function showSaraminJobDetail(idx) {
+  const job = _saraminJobs[idx];
+  if (!job) return;
+  const content = [
+    job.title   && `공고명: ${job.title}`,
+    job.company && `기업명: ${job.company}`,
+    job.job_type && `고용형태: ${job.job_type}`,
+    job.experience && `경력: ${job.experience}`,
+    job.location && `근무지: ${job.location}`,
+    job.deadline && `마감일: ${fmtDate(job.deadline)}`,
+    job.description && `\n상세 내용:\n${job.description}`,
+  ].filter(Boolean).join('\n');
+
+  openJobModal(
+    job.title || '',
+    job.company || '',
+    [
+      job.job_type && {tag: job.job_type, cls: 'tag-type'},
+      job.experience && {tag: job.experience},
+      job.location && {tag: '📍 ' + job.location, cls: 'tag-loc'},
+    ].filter(Boolean),
+    content
+  );
+}
+
+// ── Generic Job Modal ─────────────────────────────────────────────────────────
+let _currentJobData = null;
+
+function openJobModal(title, company, tags, content) {
+  _currentJobData = { title, company, content };
+  document.getElementById('jm-title').textContent = title;
+  document.getElementById('jm-meta').innerHTML =
+    `<span class="job-tag" style="font-size:12px;font-weight:700;color:var(--p)">${esc(company)}</span>` +
+    tags.map(t => `<span class="job-tag ${t.cls||''}">${esc(t.tag)}</span>`).join('');
+  document.getElementById('jm-content').textContent = content;
+  document.getElementById('job-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeJobModal() {
+  document.getElementById('job-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function modalBackdropClick(e) {
+  if (e.target === document.getElementById('job-modal')) closeJobModal();
+}
+
+function useJobForPortfolio() {
+  if (!_currentJobData) return;
+  S.selectedJob = _currentJobData;
+  closeJobModal();
+
+  // Switch to portfolio tab
+  switchMainTab('portfolio', null);
+  document.querySelectorAll('.main-tab').forEach(t => {
+    if (t.getAttribute('data-tab') === 'portfolio') t.classList.add('active');
+  });
+
+  // Show banner
+  document.getElementById('sjb-title').textContent = S.selectedJob.title;
+  document.getElementById('sjb-co').textContent = S.selectedJob.company ? `(${S.selectedJob.company})` : '';
+  document.getElementById('selected-job-banner').style.display = 'block';
+
+  toast('채용공고가 선택되었습니다. Step 4에서 자동 입력됩니다.', 'ok');
+
+  // Scroll to top of portfolio tab
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearSelectedJob() {
+  S.selectedJob = null;
+  document.getElementById('selected-job-banner').style.display = 'none';
+  document.getElementById('jd-autofill-banner').style.display = 'none';
+  document.getElementById('jobt').value = '';
+  document.getElementById('jobtxt').value = '';
+  S.jobPosting = '';
+}
+
+// ── Portfolio History ─────────────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/history');
+    const d = await r.json();
+    renderHistory(d.history || []);
+  } catch(_) {}
+}
+
+function renderHistory(items) {
+  const el = document.getElementById('history-list');
+  if (!items.length) {
+    el.innerHTML = '<div class="hist-empty">아직 생성된 포트폴리오가 없습니다.</div>';
+    return;
+  }
+  const typeIcons = { developer:'💻', planner:'📋', designer:'🎨', marketer:'📈' };
+  el.innerHTML = items.map(h => {
+    historyStore[h.id] = h;
+    return `<div class="hist-card" onclick="viewHistoryItem('${h.id}')">
+      <div class="hist-icon">${typeIcons[h.portfolio_type] || '📄'}</div>
+      <div class="hist-info">
+        <div class="hist-title">${esc(h.job_title)}</div>
+        <div class="hist-meta">${esc(h.portfolio_type_name || h.portfolio_type)} · ${esc(h.created_at)}</div>
+      </div>
+      <span class="track-badge ${h.track === 'B' ? 'track-b' : 'track-a'}" style="margin:0;flex-shrink:0">
+        ${h.track === 'B' ? '🎯' : '✅'} ${h.track}
+      </span>
+    </div>`;
+  }).join('');
+}
+
+function viewHistoryItem(id) {
+  const h = historyStore[id];
+  if (!h || !h.full_html) { toast('포트폴리오 데이터를 불러올 수 없습니다.', 'err'); return; }
+  showResult({
+    portfolio_html: h.full_html,
+    job_title: h.job_title,
+    portfolio_type: h.portfolio_type,
+    track: h.track,
+  });
+}
+
+// ── Upload tab helpers ────────────────────────────────────────────────────────
+function uTab(id, el) {
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#s1 .tc').forEach(t => t.classList.remove('active'));
+  document.getElementById('tc-' + id).classList.add('active');
+}
+
+function jTab(id, el) {
+  document.querySelectorAll('.jtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('jt-url').style.display = id === 'url' ? 'block' : 'none';
+  document.getElementById('jt-text').style.display = id === 'text' ? 'block' : 'none';
+}
+
+function jTabSwitch(id) {
+  document.querySelectorAll('.jtab').forEach(t => {
+    t.classList.toggle('active', t.getAttribute('data-jid') === id);
+  });
+  document.getElementById('jt-url').style.display = id === 'url' ? 'block' : 'none';
+  document.getElementById('jt-text').style.display = id === 'text' ? 'block' : 'none';
+}
+
+// ── File handling ─────────────────────────────────────────────────────────────
+const dz = document.getElementById('dzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  addFiles(Array.from(e.dataTransfer.files).filter(f => /\.(pptx?|pdf)$/i.test(f.name)));
+});
+
+function addFiles(files) {
+  Array.from(files).forEach(f => { if (!S.files.find(x => x.name === f.name)) S.files.push(f); });
+  renderFiles();
+}
+function rmFile(name) {
+  S.files = S.files.filter(f => f.name !== name); renderFiles();
+}
+function renderFiles() {
+  document.getElementById('flist').innerHTML = S.files.map(f =>
+    `<div class="fchip">📄 ${esc(f.name)}<button onclick="rmFile('${esc(f.name)}')" title="제거">×</button></div>`
+  ).join('');
+  document.getElementById('ubtn').disabled = S.files.length === 0;
+}
+
+async function doUploadFile() {
+  if (!S.files.length) return;
+  setBtnLoad('ubtn', 'ubtn-t', true);
+  const fd = new FormData();
+  S.files.forEach(f => fd.append('files', f));
+  try {
+    const d = await api('/upload/file', fd, true);
+    S.sid = d.session_id; showParsed(d.parsed); showStep(2);
+  } catch(e) { toast(e.message, 'err'); }
+  finally { setBtnLoad('ubtn', 'ubtn-t', false, '파일 업로드 & 분석'); }
+}
+
+async function doUploadNotion() {
+  const url = document.getElementById('nurl').value.trim();
+  if (!url) { toast('노션 URL을 입력하세요', 'err'); return; }
+  setBtnLoad('nbtn', 'nbtn-t', true);
+  try {
+    const d = await api('/upload/notion', { url });
+    S.sid = d.session_id; showParsed(d.parsed); showStep(2);
+  } catch(e) { toast(e.message, 'err'); }
+  finally { setBtnLoad('nbtn', 'nbtn-t', false, '링크 분석'); }
+}
+
+async function doUploadText() {
+  const text = document.getElementById('raw-text').value.trim();
+  if (!text) { toast('프로젝트 내용을 입력하세요', 'err'); return; }
+  setBtnLoad('tbtn', 'tbtn-t', true);
+  try {
+    const d = await api('/upload/text', { text });
+    S.sid = d.session_id; showParsed(d.parsed); showStep(2);
+  } catch(e) { toast(e.message, 'err'); }
+  finally { setBtnLoad('tbtn', 'tbtn-t', false, '텍스트 분석'); }
+}
+
+function showParsed(list) {
+  S.projects = [];
+  list.forEach(p => {
+    if (p.projects && p.projects.length) {
+      p.projects.forEach(pr => { if (pr.name) S.projects.push(pr.name); });
+    }
+  });
+  if (S.projects.length === 0) S.files.forEach(f => S.projects.push(f.name.replace(/\.[^.]+$/, '')));
+  if (S.projects.length === 0) S.projects.push('프로젝트');
+
+  let h = '';
+  list.forEach(p => {
+    h += '<div class="pcard">';
+    if (p.summary) h += `<p style="font-size:12px;color:var(--g700);margin-bottom:9px;line-height:1.6">${esc(p.summary)}</p>`;
+    if (p.projects && p.projects.length) {
+      h += `<h4>📁 프로젝트 ${p.projects.length}개 추출</h4>`;
+      p.projects.forEach(pr => {
+        h += `<div style="margin:8px 0;padding:8px;background:#fff;border-radius:8px;border:1px solid var(--g200)">
+          <strong style="font-size:12px">${esc(pr.name||'프로젝트')}</strong>
+          ${pr.role ? `<span style="font-size:11px;color:var(--g500);margin-left:7px">${esc(pr.role)}</span>` : ''}
+          ${pr.tech_stack && pr.tech_stack.length ? `<div class="tags" style="margin-top:5px">${pr.tech_stack.slice(0,6).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+        </div>`;
+      });
+    }
+    if (p.skills && p.skills.length) {
+      h += `<div style="margin-top:8px"><strong style="font-size:11px;color:var(--g500)">보유 스킬</strong><div class="tags" style="margin-top:5px">${p.skills.slice(0,10).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div></div>`;
+    }
+    h += '</div>';
+  });
+  document.getElementById('parsed-out').innerHTML = h;
+  document.getElementById('parsed-ok').style.display = 'block';
+}
+
+// ── Step management ───────────────────────────────────────────────────────────
+function showStep(n) {
+  S.step = n;
+  for (let i = 1; i <= 4; i++) {
+    const p = document.getElementById('p' + i);
+    const sc = p.querySelector('.sc');
+    if (i < n) { p.className = 'si done'; sc.textContent = '✓'; }
+    else if (i === n) { p.className = 'si active'; sc.textContent = i; }
+    else { p.className = 'si'; sc.textContent = i; }
+  }
+  if (n <= 4) {
+    const card = document.getElementById('s' + n);
+    card.classList.remove('hidden');
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  }
+
+  // Auto-fill job data when reaching Step 4 and a job is selected
+  if (n === 4 && S.selectedJob) {
+    document.getElementById('jobt').value = S.selectedJob.title;
+    document.getElementById('jobtxt').value = S.selectedJob.content;
+    S.jobPosting = S.selectedJob.content;
+    jTabSwitch('text');
+    document.getElementById('jd-autofill-banner').style.display = 'flex';
+    toast('채용공고가 자동으로 입력되었습니다.', 'ok');
+  }
+}
+
+// ── Retrospective ─────────────────────────────────────────────────────────────
+function selRetro(type, el) {
+  S.retroType = type;
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderRetroForms(type);
+  document.getElementById('retro-go').style.display = 'inline-flex';
+}
+
+function renderRetroForms(type) {
+  const fields = RETRO_FIELDS[type];
+  document.getElementById('retro-forms-wrap').innerHTML = S.projects.map((name, idx) => `
+    <div class="retro-project-card">
+      <div class="retro-project-title">
+        <span class="retro-project-badge">${idx + 1}</span>${esc(name)}
+      </div>
+      ${fields.map(f => `
+        <div class="ig">
+          <label>${esc(f.label)}</label>
+          <textarea id="retro-${idx}-${f.id}" placeholder="${esc(f.placeholder)}"></textarea>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function collectRetroData() {
+  return S.projects.map((name, idx) => {
+    const obj = { project: name };
+    RETRO_FIELDS[S.retroType].forEach(f => {
+      const el = document.getElementById(`retro-${idx}-${f.id}`);
+      obj[f.id] = el ? el.value.trim() : '';
+    });
+    return obj;
+  });
+}
+
+async function saveRetroAndInterview() {
+  try { await api('/retro/save', { session_id: S.sid, retro_type: S.retroType, retro_data: collectRetroData() }); } catch(_) {}
+  startInterview();
+}
+async function skipRetro() {
+  try { await api('/retro/save', { session_id: S.sid, retro_type: 'skip', retro_data: [] }); } catch(_) {}
+  startInterview();
+}
+
+// ── Interview ─────────────────────────────────────────────────────────────────
+async function startInterview() {
+  document.getElementById('ss-retro').style.display = 'none';
+  document.getElementById('ss-interview').style.display = 'block';
+  addMsg('ai', '안녕하세요! 포트폴리오를 더 깊이 이해하기 위해 몇 가지 질문을 드릴게요 🙂');
+  showTyping();
+  try {
+    const d = await api('/interview/start', { session_id: S.sid });
+    removeTyping();
+    document.getElementById('qnum').textContent = d.number;
+    document.getElementById('qtot').textContent = d.total;
+    addMsg('ai', d.question);
+  } catch(e) { removeTyping(); toast('인터뷰 시작 실패', 'err'); }
+}
+
+function addMsg(role, text) {
+  const c = document.getElementById('chat-msgs');
+  const d = document.createElement('div');
+  d.className = 'cmsg ' + role;
+  d.innerHTML = `<div class="clabel">${role === 'ai' ? '🤖 AI 인터뷰어' : '👤 나'}</div><div class="cbubble">${esc(text)}</div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+function showTyping() {
+  const c = document.getElementById('chat-msgs');
+  const d = document.createElement('div');
+  d.className = 'cmsg ai'; d.id = 'typing-el';
+  d.innerHTML = '<div class="clabel">🤖 AI 인터뷰어</div><div class="typing"><span></span><span></span><span></span></div>';
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+function removeTyping() { const el = document.getElementById('typing-el'); if (el) el.remove(); }
+function ansKey(e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submitAns(); } }
+
+async function submitAns() {
+  const inp = document.getElementById('ans');
+  const ans = inp.value.trim();
+  if (!ans) return;
+  addMsg('user', ans); inp.value = '';
+  const btn = document.getElementById('ansbtn');
+  btn.disabled = true; btn.textContent = '…';
+  showTyping();
+  try {
+    const d = await api('/interview/answer', { session_id: S.sid, answer: ans });
+    removeTyping();
+    if (d.done) {
+      addMsg('ai', '모든 질문 완료! 이제 포트폴리오 양식을 선택해주세요 🎉');
+      document.getElementById('chat-in').style.display = 'none';
+      setTimeout(() => showStep(3), 1400);
+    } else {
+      document.getElementById('qnum').textContent = d.number;
+      addMsg('ai', d.question);
+    }
+  } catch(e) { removeTyping(); toast('답변 제출 실패', 'err'); }
+  finally { btn.disabled = false; btn.textContent = '전송'; }
+}
+
+// ── Portfolio type ────────────────────────────────────────────────────────────
+function selType(type, el) {
+  S.pfType = type;
+  document.querySelectorAll('.tcard').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  setTimeout(() => showStep(4), 550);
+}
+
+// ── Job posting (manual URL scrape) ──────────────────────────────────────────
+async function scrapeJob() {
+  const url = document.getElementById('joburl').value.trim();
+  if (!url) { toast('URL을 입력하세요', 'err'); return; }
+  const btn = document.getElementById('scrbtn');
+  btn.textContent = '불러오는 중…'; btn.disabled = true;
+  try {
+    const d = await api('/scrape', { url });
+    S.jobPosting = d.text;
+    document.getElementById('job-prev-txt').textContent = d.text.substring(0, 600) + (d.text.length > 600 ? '\n…' : '');
+    document.getElementById('job-preview').style.display = 'block';
+    toast('채용공고를 가져왔습니다!', 'ok');
+  } catch(e) { toast('URL 파싱 실패. 직접 입력해주세요.', 'err'); }
+  finally { btn.textContent = '불러오기'; btn.disabled = false; }
+}
+
+// ── Generate portfolio ────────────────────────────────────────────────────────
+async function doGenerate(withJD) {
+  if (!S.pfType) { toast('포트폴리오 양식을 먼저 선택하세요', 'err'); return; }
+
+  let jobTitle = '', jobPosting = '';
+  if (withJD) {
+    jobTitle = v('jobt');
+    if (!jobTitle) { toast('지원 직무명을 입력하세요', 'err'); return; }
+    const isUrl = document.getElementById('jt-url').style.display !== 'none';
+    jobPosting = isUrl ? S.jobPosting : v('jobtxt');
+    if (!jobPosting) { toast(isUrl ? '채용공고를 불러오거나 직접 입력 탭을 사용하세요' : '채용공고를 입력하세요', 'err'); return; }
+  }
+
+  const btnId = withJD ? 'genbtn-b-t' : 'genbtn-a-t';
+  document.getElementById(btnId).innerHTML = '<span class="spin"></span> 생성 중…';
+  document.getElementById('gen-overlay').classList.add('show');
+
+  try {
+    const d = await api('/generate', {
+      session_id: S.sid,
+      portfolio_type: S.pfType,
+      job_title: jobTitle,
+      job_posting: jobPosting,
+    });
+    showResult(d);
+    loadHistory(); // Refresh history after generation
+  } catch(e) { toast(e.message, 'err'); }
+  finally {
+    document.getElementById('gen-overlay').classList.remove('show');
+    document.getElementById(btnId).textContent = withJD ? '✨ 맞춤형으로 생성' : '바로 생성 →';
+  }
+}
+
+// ── Result ────────────────────────────────────────────────────────────────────
+const typeNames = { developer:'개발자', planner:'기획자', designer:'디자이너', marketer:'마케터' };
+
+function showResult(d) {
+  const rp = document.getElementById('result-page');
+  rp.classList.add('vis');
+
+  const trackLabel = d.track === 'B'
+    ? `<span class="track-badge track-b">🎯 채용공고 맞춤형 · ${esc(d.job_title)}</span>`
+    : `<span class="track-badge track-a">✅ 경험 정제 카드</span>`;
+
+  document.getElementById('rsub').innerHTML = `${typeNames[d.portfolio_type]||d.portfolio_type} 형식`;
+  document.getElementById('pf-out').innerHTML = trackLabel + d.portfolio_html;
+
+  document.querySelectorAll('#pf-out .item').forEach(card => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-card-btn';
+    btn.textContent = '복사';
+    btn.onclick = () => {
+      navigator.clipboard.writeText(card.innerText)
+        .then(() => { btn.textContent = '✓ 복사됨'; setTimeout(() => btn.textContent = '복사', 2000); })
+        .catch(() => toast('복사 실패', 'err'));
+    };
+    card.style.position = 'relative';
+    card.appendChild(btn);
+  });
+
+  rp.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function copyAll() {
+  const txt = document.getElementById('pf-out').innerText;
+  navigator.clipboard.writeText(txt)
+    .then(() => toast('전체 복사 완료!', 'ok'))
+    .catch(() => toast('복사 실패', 'err'));
+}
+
+function startOver() {
+  S.sid = null; S.step = 1; S.retroType = null; S.pfType = null;
+  S.jobPosting = ''; S.files = []; S.projects = [];
+
+  document.getElementById('result-page').classList.remove('vis');
+
+  // Reset step cards
+  ['s2','s3','s4'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.getElementById('parsed-ok').style.display = 'none';
+  document.getElementById('flist').innerHTML = '';
+  document.getElementById('ubtn').disabled = true;
+  document.getElementById('nurl').value = '';
+  document.getElementById('raw-text').value = '';
+  document.getElementById('ss-retro').style.display = 'block';
+  document.getElementById('ss-interview').style.display = 'none';
+  document.getElementById('chat-msgs').innerHTML = '';
+  document.getElementById('chat-in').style.display = 'flex';
+  document.getElementById('ans').value = '';
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('retro-forms-wrap').innerHTML = '';
+  document.getElementById('retro-go').style.display = 'none';
+  document.querySelectorAll('.tcard').forEach(c => c.classList.remove('sel'));
+  document.getElementById('jobt').value = '';
+  document.getElementById('joburl').value = '';
+  document.getElementById('jobtxt').value = '';
+  document.getElementById('job-preview').style.display = 'none';
+  document.getElementById('jd-autofill-banner').style.display = 'none';
+  S.jobPosting = '';
+
+  for (let i = 1; i <= 4; i++) {
+    const p = document.getElementById('p' + i);
+    const sc = p.querySelector('.sc');
+    p.className = i === 1 ? 'si active' : 'si';
+    sc.textContent = i;
+  }
+
+  // Go back to portfolio tab
+  switchMainTab('portfolio', null);
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function v(id) { return document.getElementById(id).value.trim(); }
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(s) {
+  if (!s) return '미정';
+  const str = String(s).replace(/-/g, '');
+  if (str.length === 8) return `${str.slice(0,4)}.${str.slice(4,6)}.${str.slice(6,8)}`;
+  return s;
+}
+async function api(path, body, isForm = false) {
+  const opts = { method: 'POST' };
+  const token = localStorage.getItem('sb_access_token');
+  if (isForm) {
+    opts.body = body;
+    if (token) opts.headers = { 'Authorization': `Bearer ${token}` };
+  } else {
+    opts.headers = { 'Content-Type': 'application/json' };
+    if (token) opts.headers['Authorization'] = `Bearer ${token}`;
+    opts.body = JSON.stringify(body);
+  }
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    let msg = '서버 오류가 발생했습니다.';
+    try { const e = await res.json(); msg = e.detail || msg; } catch(_) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+function setBtnLoad(btnId, txtId, loading, label = '') {
+  const btn = document.getElementById(btnId);
+  const txt = document.getElementById(txtId);
+  btn.disabled = loading;
+  txt.innerHTML = loading ? '<span class="spin"></span> 분석 중…' : label;
+}
+let tTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type ? ' ' + type : '') + ' show';
+  clearTimeout(tTimer);
+  tTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadHistory();
+loadSeoulJobs();
+</script>
+</body>
+</html>

@@ -88,3 +88,27 @@ POST /generate                 → 포트폴리오 HTML 반환
 ```
 
 새 페이지 추가 시 이 토큰과 Font Awesome 6.5.2 CDN을 동일하게 사용할 것.
+
+## GitHub 작업 지침
+
+### 커밋 메시지 규칙
+형식: `{type}({scope}): {summary}`
+
+- `type`: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `style`
+- `scope`: 변경 대상 (페이지, 컴포넌트, 모듈, API 등)
+- `summary`: 한글, 50자 이내, 명령형 어미 사용
+
+예시
+- `feat(signup): 이메일 중복 확인 API 연동`
+- `fix(auth): 토큰 만료 시 자동 로그아웃 처리`
+- `refactor(api): axios 인스턴스 공통화`
+- `chore(deps): React 19로 업그레이드`
+
+---
+
+## Claude 행동 지침
+
+1. **현재 브랜치 확인**: 작업 시작 전 `git status`로 현재 브랜치를 확인한다. `main`이면 사용자에게 알리고 다른 브랜치로 전환할지 묻는다.
+2. **커밋 단위**: 한 커밋에는 하나의 논리적 변경만 담는다.
+3. **금지 동작**: `main`에 직접 commit/push, force push(`--force`), 히스토리 재작성(`rebase -i`, `reset --hard`)은 사용자의 명시적 요청 없이 수행하지 않는다.
+5. **feat 브랜치 판단**: 사용자가 큰 기능을 요청하면 feat 브랜치를 팔지 먼저 묻는다. 작은 작업은 main을 제외한 현재 브랜치에서 진행.
