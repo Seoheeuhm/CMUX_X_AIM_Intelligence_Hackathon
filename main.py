@@ -2,6 +2,7 @@ import io
 import json
 import os
 import re
+import tempfile
 import uuid
 from typing import Any, Dict, List
 
@@ -14,15 +15,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from starlette.background import BackgroundTask
 
 load_dotenv()
 print("KEY LOADED:", bool(os.getenv("ANTHROPIC_API_KEY")))
 
 try:
     from pptx import Presentation
+    from pptx.util import Cm, Pt
+    from pptx.dml.color import RGBColor
     PPTX_OK = True
 except ImportError:
     PPTX_OK = False
+    RGBColor = Cm = Pt = None
 
 try:
     import PyPDF2
@@ -41,7 +46,6 @@ def client() -> anthropic.Anthropic:
     if not key:
         raise HTTPException(500, "ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다.")
     return anthropic.Anthropic(api_key=key)
-
 
 def extract_pptx(data: bytes) -> str:
     if not PPTX_OK:
@@ -104,7 +108,6 @@ def call_claude(c: anthropic.Anthropic, prompt: str, max_tokens: int = 8192, max
         if msg.stop_reason != "max_tokens":
             break
 
-        # 잘린 경우: 지금까지 쓴 내용을 assistant 턴으로 이어붙이고 계속 요청
         messages.append({"role": "assistant", "content": chunk})
         messages.append({
             "role": "user",
@@ -118,21 +121,17 @@ def call_claude(c: anthropic.Anthropic, prompt: str, max_tokens: int = 8192, max
 
     return clean_html(accumulated)
 
-
 def parse_materials(text: str, source: str) -> dict:
     c = client()
     msg = c.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=2048,
-        messages=[{
-            "role": "user",
-            "content": (
-                f"다음 포트폴리오 텍스트를 분석해서 JSON만 반환하세요 (코드블록·설명 없이).\n"
-                f"출처: {source}\n\n텍스트:\n{text[:8000]}\n\n"
-                '반환 형식:\n{"projects":[{"name":"","role":"","tech_stack":[],"achievements":[],"description":""}],'
-                '"skills":[],"summary":""}'
-            ),
-        }],
+        messages=[{"role": "user", "content": (
+            f"다음 포트폴리오 텍스트를 분석해서 JSON만 반환하세요 (코드블록·설명 없이).\n"
+            f"출처: {source}\n\n텍스트:\n{text[:8000]}\n\n"
+            '반환 형식:\n{"projects":[{"name":"","role":"","tech_stack":[],"achievements":[],"description":""}],'
+            '"skills":[],"summary":""}'
+        )}],
     )
     raw = msg.content[0].text.strip()
     m = re.search(r"\{[\s\S]*\}", raw)
@@ -142,7 +141,6 @@ def parse_materials(text: str, source: str) -> dict:
         except Exception:
             pass
     return {"projects": [], "skills": [], "summary": text[:300]}
-
 
 # ── Prompt builders ───────────────────────────────────────────────────────────
 
@@ -321,6 +319,38 @@ class GenerateReq(BaseModel):
     job_posting: str = ""
 
 
+class SlideCard(BaseModel):
+    title: str = ""
+    body: str = ""
+
+
+class Slide(BaseModel):
+    id: str
+    layout: str               # title | section | content | project | closing
+    title: str = ""
+    subtitle: str = ""
+    content: str = ""
+    bullets: list = []
+    cards: list = []
+    role: str = ""
+    description: str = ""
+    tech_stack: list = []
+    achievements: list = []
+
+
+class PptPreviewReq(BaseModel):
+    session_id: str
+    portfolio_type: str       # developer | planner | designer | marketer
+    job_title: str = ""
+    job_posting: str = ""
+
+
+class PptDownloadReq(BaseModel):
+    session_id: str
+    portfolio_type: str
+    slides: list
+
+
 # ── Static files ──────────────────────────────────────────────────────────────
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -433,16 +463,13 @@ def interview_start(req: InterviewStartReq):
     msg = c.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=600,
-        messages=[{
-            "role": "user",
-            "content": (
-                f"포트폴리오 내용:\n{summary}\n\n"
-                "이 경험을 더 깊이 파악하는 꼬리 질문 3개를 JSON만 반환하세요 (설명 없이):\n"
-                '{"questions":["질문1","질문2","질문3"]}\n\n'
-                "질문 주제: 1) 가장 어려운 기술적/업무적 문제와 해결법 "
-                "2) 구체적 성과 수치 또는 임팩트 3) 팀 내 핵심 기여와 역할"
-            ),
-        }],
+        messages=[{"role": "user", "content": (
+            f"포트폴리오 내용:\n{summary}\n\n"
+            "이 경험을 더 깊이 파악하는 꼬리 질문 3개를 JSON만 반환하세요 (설명 없이):\n"
+            '{"questions":["질문1","질문2","질문3"]}\n\n'
+            "질문 주제: 1) 가장 어려운 기술적/업무적 문제와 해결법 "
+            "2) 구체적 성과 수치 또는 임팩트 3) 팀 내 핵심 기여와 역할"
+        )}],
     )
     raw = msg.content[0].text.strip()
     m = re.search(r"\{[\s\S]*\}", raw)
@@ -553,6 +580,288 @@ def generate(req: GenerateReq):
         "portfolio_type": req.portfolio_type,
         "track": "B" if has_jd else "A",
     }
+
+
+# ── PPT Design System ─────────────────────────────────────────────────────────
+
+_BG_DARK   = "2D3436"
+_BG_LIGHT  = "FFF5F5"
+_CORAL     = "FF6B6B"
+_TEXT_DARK = "2D3436"
+_TEXT_GRAY = "636E72"
+
+_PPT_ACCENTS = {
+    "developer": "6C5CE7",
+    "planner":   "0984E3",
+    "designer":  "E17055",
+    "marketer":  "00B894",
+}
+
+
+def _hex_rgb(s: str):
+    return RGBColor(int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16))
+
+
+def _ppt_rect(slide, x: float, y: float, w: float, h: float, fill: str):
+    shp = slide.shapes.add_shape(1, Cm(x), Cm(y), Cm(w), Cm(h))
+    shp.fill.solid()
+    shp.fill.fore_color.rgb = _hex_rgb(fill)
+    shp.line.fill.background()
+    return shp
+
+
+def _ppt_txt(slide, text: str, x: float, y: float, w: float, h: float,
+             size: float, bold: bool = False, color: str = "2D3436"):
+    tb = slide.shapes.add_textbox(Cm(x), Cm(y), Cm(w), Cm(h))
+    tf = tb.text_frame
+    tf.word_wrap = True
+    run = tf.paragraphs[0].add_run()
+    run.text = str(text)[:300]
+    run.font.size = Pt(size)
+    run.font.bold = bold
+    run.font.name = "Calibri"
+    run.font.color.rgb = _hex_rgb(color)
+    return tb
+
+
+def _ppt_dark_slide(slide, sd: dict, layout: str, accent: str):
+    W, H = 33.87, 19.05
+    _ppt_rect(slide, 0, 0, W, H, _BG_DARK)
+    bar = _CORAL if layout in ("title", "closing") else accent
+    _ppt_rect(slide, 0.6, 2.5, 0.5, 6.0, bar)
+    _ppt_txt(slide, sd.get("title", ""), 1.8, 3.0, W - 3.0, 3.5, 34, bold=True, color="FFFFFF")
+    sub = sd.get("subtitle") or sd.get("content") or ""
+    if sub:
+        _ppt_txt(slide, sub, 1.8, 7.0, W - 3.0, 2.0, 16, color="B2BEC3")
+
+
+def _ppt_project_slide(slide, sd: dict, accent: str):
+    W, H = 33.87, 19.05
+    _ppt_rect(slide, 0, 0, W, H, _BG_LIGHT)
+    _ppt_rect(slide, 0, 0, W, 3.0, "FFFFFF")
+    _ppt_rect(slide, 0, 0, 0.5, 3.0, _CORAL)
+    _ppt_txt(slide, sd.get("title", ""), 1.2, 0.5, W - 2.0, 2.2, 24, bold=True)
+
+    left_x, left_w = 1.0, 15.0
+    y = 3.8
+    role = sd.get("role", "")
+    if role:
+        _ppt_rect(slide, left_x, y, left_w, 1.0, "EBF3FB")
+        _ppt_txt(slide, f"역할: {role}", left_x + 0.3, y + 0.15, left_w - 0.6, 0.8, 12)
+        y += 1.3
+    desc = sd.get("description", "")
+    if desc:
+        _ppt_txt(slide, desc[:220], left_x, y, left_w, H - y - 1.5, 12, color=_TEXT_GRAY)
+
+    right_x = 17.5
+    right_w = W - right_x - 1.0
+    ry = 3.8
+    tech = sd.get("tech_stack", [])
+    ach  = sd.get("achievements", [])
+    if tech:
+        _ppt_txt(slide, "기술 스택", right_x, ry, right_w, 0.8, 13, bold=True, color=accent)
+        ry += 0.9
+        _ppt_txt(slide, "  •  ".join(str(t) for t in tech[:8]), right_x, ry, right_w, 1.8, 11)
+        ry += 2.1
+    if ach:
+        _ppt_txt(slide, "주요 성과", right_x, ry, right_w, 0.8, 13, bold=True, color=accent)
+        ry += 0.9
+        for a in ach[:4]:
+            if ry > H - 2.0:
+                break
+            _ppt_txt(slide, f"• {str(a)[:70]}", right_x, ry, right_w, 0.9, 11)
+            ry += 0.9
+
+
+def _ppt_content_slide(slide, sd: dict, accent: str):
+    W, H = 33.87, 19.05
+    _ppt_rect(slide, 0, 0, W, H, _BG_LIGHT)
+    _ppt_rect(slide, 0, 0, W, 3.0, "FFFFFF")
+    _ppt_rect(slide, 0, 0, 0.5, 3.0, _CORAL)
+    _ppt_txt(slide, sd.get("title", ""), 1.2, 0.6, W - 2.0, 2.0, 26, bold=True)
+
+    cards   = sd.get("cards", [])
+    bullets = sd.get("bullets", [])
+
+    if cards:
+        n = min(len(cards), 3)
+        card_w = (W - 2.0 - (n - 1) * 0.4) / n
+        for i, card in enumerate(cards[:3]):
+            cx = 1.0 + i * (card_w + 0.4)
+            cy, ch = 3.6, H - 4.8
+            _ppt_rect(slide, cx, cy, card_w, ch, "FFFFFF")
+            _ppt_rect(slide, cx, cy, card_w, 0.4, accent)
+            c = card if isinstance(card, dict) else {"title": str(card), "body": ""}
+            _ppt_txt(slide, c.get("title", ""), cx + 0.3, cy + 0.6, card_w - 0.6, 1.0, 14, bold=True)
+            if c.get("body"):
+                _ppt_txt(slide, c["body"], cx + 0.3, cy + 1.8, card_w - 0.6, ch - 2.2, 12, color=_TEXT_GRAY)
+    elif bullets:
+        by = 3.8
+        for b in bullets[:6]:
+            if by > H - 1.5:
+                break
+            _ppt_rect(slide, 1.0, by + 0.3, 0.3, 0.3, _CORAL)
+            _ppt_txt(slide, str(b)[:110], 1.8, by, W - 3.5, 1.0, 13)
+            by += 1.3
+
+
+def _skills_cards(skills: list) -> list:
+    if not skills:
+        return [{"title": "기술 스택", "body": "내용을 입력하세요"}]
+    cats  = ["Frontend / Backend", "DevOps / Infra", "기타 기술"]
+    chunk = max(1, (len(skills) + 2) // 3)
+    result = []
+    for i in range(3):
+        batch = skills[i * chunk:(i + 1) * chunk]
+        if not batch:
+            break
+        result.append({"title": cats[i], "body": ", ".join(str(s) for s in batch)})
+    return result or [{"title": "기술 스택", "body": "내용을 입력하세요"}]
+
+
+# ── PPT Preview ───────────────────────────────────────────────────────────────
+
+@app.post("/generate/ppt/preview")
+def generate_ppt_preview(req: PptPreviewReq):
+    if req.session_id not in sessions:
+        raise HTTPException(404, "세션을 찾을 수 없습니다.")
+    sess = sessions[req.session_id]
+
+    all_projects: list = []
+    all_skills:   list = []
+    summary = ""
+    for m in sess["materials"]:
+        p = m["parsed"]
+        all_projects.extend(p.get("projects", []))
+        all_skills.extend(p.get("skills", []))
+        if not summary and p.get("summary"):
+            summary = p["summary"]
+
+    ans_bullets = [str(a)[:100] for a in sess.get("answers", []) if a][:3]
+
+    retro = sess.get("retro", {})
+    retro_bullets: list = []
+    if retro and retro.get("type") not in (None, "skip", ""):
+        for pr in (retro.get("data") or []):
+            if isinstance(pr, dict):
+                for k, v in pr.items():
+                    if k != "project" and v:
+                        retro_bullets.append(f"[{k}] {str(v)[:80]}")
+        retro_bullets = retro_bullets[:3]
+
+    pt        = req.portfolio_type
+    name_line = summary[:40] if summary else "이름 / 직함"
+
+    def _base(sid, layout, title="", subtitle="", content=""):
+        return {
+            "id": sid, "layout": layout, "title": title,
+            "subtitle": subtitle, "content": content,
+            "bullets": [], "cards": [],
+            "role": "", "description": "", "tech_stack": [], "achievements": [],
+        }
+
+    def _proj(idx, sid):
+        if idx >= len(all_projects):
+            return None
+        p = all_projects[idx]
+        return {
+            "id": sid, "layout": "project",
+            "title": p.get("name", f"프로젝트 {idx + 1}"),
+            "subtitle": "", "content": "", "bullets": [], "cards": [],
+            "role":         p.get("role", ""),
+            "description":  p.get("description", ""),
+            "tech_stack":   p.get("tech_stack", []),
+            "achievements": p.get("achievements", []),
+        }
+
+    # (subtitle, s2_title, s2_content, s3_title, s4_title, s7_title, s8_title, cards_fn)
+    CFG = {
+        "developer": (
+            "DEVELOPER PORTFOLIO", "기술 역량", "보유 기술 스택 및 개발 경험",
+            "기술 스택", "주요 프로젝트", "기술적 문제해결", "회고 & 성장",
+            lambda: _skills_cards(all_skills),
+        ),
+        "planner": (
+            "PLANNER PORTFOLIO", "기획 역량", "서비스 기획 및 리서치 경험",
+            "기획 방법론", "주요 프로젝트", "서비스 성과 지표", "회고 & 인사이트",
+            lambda: [
+                {"title": "리서치",    "body": "사용자 인터뷰, 설문, 경쟁사 분석"},
+                {"title": "UX 설계",  "body": "정보구조, 와이어프레임, 프로토타입"},
+                {"title": "지표 설계", "body": "MAU, 전환율, NPS, 리텐션"},
+            ],
+        ),
+        "designer": (
+            "DESIGNER PORTFOLIO", "디자인 역량", "툴 역량 및 UX 개선 경험",
+            "툴 & 결과물", "주요 프로젝트", "디자인 프로세스", "회고 & 성장",
+            lambda: [
+                {"title": "디자인 툴", "body": "Figma, Sketch, Adobe XD, Illustrator"},
+                {"title": "브랜딩",   "body": "BI 설계, 로고, 컬러 시스템, 타이포"},
+                {"title": "UX 개선",  "body": "사용성 테스트, IA, 인터랙션 설계"},
+            ],
+        ),
+        "marketer": (
+            "MARKETER PORTFOLIO", "채널 & 캠페인 역량", "채널별 퍼포먼스 및 캠페인 경험",
+            "채널별 경험", "주요 프로젝트", "핵심 퍼포먼스 지표", "회고 & 전략",
+            lambda: [
+                {"title": "SNS / 콘텐츠", "body": "Instagram, YouTube, 블로그, 바이럴"},
+                {"title": "퍼포먼스",     "body": "Google Ads, Meta Ads, ROAS, CTR"},
+                {"title": "데이터 분석",  "body": "GA4, Amplitude, A/B 테스트, CAC"},
+            ],
+        ),
+    }
+    sub, s2t, s2c, s3t, s4t, s7t, s8t, cards_fn = CFG.get(pt, CFG["developer"])
+
+    slides = [
+        {**_base("s1", "title",   name_line, sub,  summary[:120])},
+        {**_base("s2", "section", s2t,       content=s2c)},
+        {**_base("s3", "content", s3t), "cards": cards_fn()},
+        {**_base("s4", "section", s4t)},
+    ]
+    for idx, sid in ((0, "s5"), (1, "s6")):
+        sl = _proj(idx, sid)
+        if sl:
+            slides.append(sl)
+    slides += [
+        {**_base("s7", "content", s7t), "bullets": ans_bullets or ["답변 내용을 입력하세요"]},
+        {**_base("s8", "content", s8t), "bullets": retro_bullets},
+        {**_base("s9", "closing", "감사합니다", content=summary[:80] if summary else "")},
+    ]
+    return {"slides": slides, "portfolio_type": pt, "session_id": req.session_id}
+
+
+# ── PPT Download ──────────────────────────────────────────────────────────────
+
+@app.post("/generate/ppt/download")
+def generate_ppt_download(req: PptDownloadReq):
+    if not PPTX_OK:
+        raise HTTPException(400, "python-pptx가 설치되지 않았습니다.")
+
+    accent = _PPT_ACCENTS.get(req.portfolio_type, _CORAL)
+    prs = Presentation()
+    prs.slide_width  = Cm(33.87)
+    prs.slide_height = Cm(19.05)
+    blank = prs.slide_layouts[6]
+
+    for raw in req.slides:
+        sd     = raw if isinstance(raw, dict) else dict(raw)
+        layout = sd.get("layout", "content")
+        slide  = prs.slides.add_slide(blank)
+        if layout in ("title", "section", "closing"):
+            _ppt_dark_slide(slide, sd, layout, accent)
+        elif layout == "project":
+            _ppt_project_slide(slide, sd, accent)
+        else:
+            _ppt_content_slide(slide, sd, accent)
+
+    tmp = os.path.join(tempfile.gettempdir(), f"portfolio_{uuid.uuid4().hex}.pptx")
+    prs.save(tmp)
+    return FileResponse(
+        tmp,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        filename="portfolio.pptx",
+        headers={"Content-Disposition": "attachment; filename=portfolio.pptx"},
+        background=BackgroundTask(os.unlink, tmp),
+    )
 
 
 if __name__ == "__main__":
