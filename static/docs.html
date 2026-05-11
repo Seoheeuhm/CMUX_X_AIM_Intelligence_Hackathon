@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>문서 — Portfolog</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<script src="/static/navbar.js"></script>
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
       integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
@@ -19,24 +20,6 @@
 }
 html{scroll-behavior:smooth}
 body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:var(--g900);line-height:1.6;overflow-x:hidden}
-
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--g200);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.logo-img{height:40px;width:auto;flex-shrink:0}
-.logo-name{font-size:17px;font-weight:800;color:var(--g900)}
-.nav-links{list-style:none;display:flex;gap:28px;align-items:center}
-.nav-links a{font-size:14px;font-weight:600;color:var(--g500);text-decoration:none;transition:color .2s}
-.nav-links a:hover,.nav-links a.active{color:var(--g900)}
-.nav-right{display:flex;align-items:center;gap:12px}
-.nav-cta{padding:8px 18px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .2s}
-.nav-cta:hover{background:var(--pd)}
-.nav-hamburger{display:none;background:none;border:none;cursor:pointer;font-size:18px;color:var(--g700);padding:4px}
-.nav-mobile{display:none;position:fixed;top:63px;left:0;right:0;z-index:99;background:#fff;border-bottom:1px solid var(--g200);padding:16px 24px;flex-direction:column;gap:0}
-.nav-mobile a{display:block;padding:12px 0;font-size:15px;font-weight:600;color:var(--g700);text-decoration:none;border-bottom:1px solid var(--g100)}
-.nav-mobile.open{display:flex}
-.nav-mobile-cta{margin-top:12px;padding:12px 20px!important;background:var(--p);color:#fff!important;border-radius:8px;text-align:center;border:none!important}
-@media(max-width:768px){.nav-links{display:none}.nav-hamburger{display:block}}
 
 /* DOCS LAYOUT */
 .docs-wrap{max-width:1100px;margin:0 auto;padding:100px 24px 80px;display:grid;grid-template-columns:240px 1fr;gap:56px;align-items:start}
@@ -90,29 +73,7 @@ footer p{font-size:12px;line-height:1.8}
 </head>
 <body>
 
-<nav>
-  <a href="/" class="nav-logo">
-    <img src="/static/logo.png" class="logo-img" alt="Portfolog">
-    <span class="logo-name">Portfolog</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="/#features">기능</a></li>
-    <li><a href="/#pricing">가격</a></li>
-    <li><a href="/docs" class="active">문서</a></li>
-    <li><a href="/qna">문의</a></li>
-  </ul>
-  <div class="nav-right">
-    <a href="/app" class="nav-cta">무료로 시작하기 →</a>
-    <button class="nav-hamburger" id="navToggle" aria-label="메뉴"><i class="fa-solid fa-bars"></i></button>
-  </div>
-</nav>
-<div class="nav-mobile" id="navMobile">
-  <a href="/#features">기능</a>
-  <a href="/#pricing">가격</a>
-  <a href="/docs">문서</a>
-  <a href="/qna">문의</a>
-  <a href="/app" class="nav-mobile-cta">무료로 시작하기 →</a>
-</div>
+<script>initNavbar({ activePage: 'docs', addBodyPadding: true });</script>
 
 <div class="docs-wrap">
   <!-- SIDEBAR -->
@@ -312,13 +273,6 @@ footer p{font-size:12px;line-height:1.8}
 </footer>
 
 <script>
-const toggle = document.getElementById('navToggle');
-const mobile = document.getElementById('navMobile');
-toggle.addEventListener('click', () => mobile.classList.toggle('open'));
-mobile.querySelectorAll('a').forEach(a =>
-  a.addEventListener('click', () => mobile.classList.remove('open'))
-);
-
 // Active sidebar link on scroll
 const sections = document.querySelectorAll('.docs-section');
 const sideLinks = document.querySelectorAll('.sidebar-nav a');
