@@ -60,6 +60,11 @@
     '.pd-item.logout i{color:var(--err)}',
     '.pd-item.logout:hover{background:#FEF2F2}',
     '#plan-badge{font-size:12px;color:#6B7280;padding:3px 10px;background:#F3F4F6;border-radius:12px;white-space:nowrap;display:none}',
+    '#pd-gen-info{padding:10px 16px 8px;border-bottom:1px solid var(--g100);display:none}',
+    '.pd-gen-row{display:flex;align-items:center;justify-content:space-between}',
+    '.pd-gen-label{font-size:12px;color:#6B7280}',
+    '.pd-gen-bar-wrap{flex:1;height:4px;background:var(--g100);border-radius:4px;margin:6px 0 0;overflow:hidden}',
+    '.pd-gen-bar{height:100%;background:var(--p);border-radius:4px;transition:width .3s}',
   ].join('');
 
   // ── HTML builder ────────────────────────────────────────────────────────────
@@ -95,6 +100,13 @@
                   '<div class="pd-name" id="pdName"></div>' +
                   '<div class="pd-email" id="pdEmail"></div>' +
                 '</div>' +
+              '</div>' +
+              '<div id="pd-gen-info">' +
+                '<div class="pd-gen-row">' +
+                  '<span class="pd-gen-label">이번 달 생성 횟수</span>' +
+                  '<span class="pd-gen-label" id="pdGenCount"></span>' +
+                '</div>' +
+                '<div class="pd-gen-bar-wrap"><div class="pd-gen-bar" id="pdGenBar" style="width:0%"></div></div>' +
               '</div>' +
               '<div class="pd-menu">' +
                 '<a href="/app" class="pd-item"><i class="fa-solid fa-wand-magic-sparkles"></i>포트폴리오 만들기</a>' +
@@ -192,6 +204,23 @@
     document.getElementById('pdName').textContent = fullName;
     document.getElementById('pdEmail').textContent = email;
     _setAvatar(document.getElementById('pdAvatar'), document.getElementById('pdAvatarInit'), avatarUrl, initials);
+
+    var tok = token;
+    fetch('/auth/me', { headers: { 'Authorization': 'Bearer ' + tok } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !data.profile) return;
+        var p = data.profile;
+        var remaining = p.gen_limit - p.gen_count;
+        var pct = p.gen_limit > 0 ? Math.round((p.gen_count / p.gen_limit) * 100) : 0;
+        var infoEl = document.getElementById('pd-gen-info');
+        var countEl = document.getElementById('pdGenCount');
+        var barEl = document.getElementById('pdGenBar');
+        if (infoEl) infoEl.style.display = 'block';
+        if (countEl) countEl.textContent = remaining + ' / ' + p.gen_limit + '회 남음';
+        if (barEl) barEl.style.width = pct + '%';
+      })
+      .catch(function () {});
   }
 
   // ── Global API ──────────────────────────────────────────────────────────────
