@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 포트폴리오 현황 — Portfolog</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="/static/navbar.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#6366F1;--pd:#4338CA;--pl:#EEF2FF;
+  --ok:#10B981;--err:#EF4444;
+  --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;
+  --g400:#9CA3AF;--g500:#6B7280;--g700:#374151;--g900:#111827;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh}
+
+.page-wrap{max-width:900px;margin:0 auto;padding:48px 24px 80px}
+
+/* ── Page Header ── */
+.page-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px}
+.page-top h1{font-size:24px;font-weight:800;color:var(--g900)}
+.page-top p{font-size:14px;color:var(--g500);margin-top:4px}
+.btn-new{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--p);color:#fff;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;transition:background .2s;white-space:nowrap}
+.btn-new:hover{background:var(--pd)}
+
+/* ── State views ── */
+.state-box{text-align:center;padding:80px 24px}
+.state-box .icon{font-size:48px;margin-bottom:16px;opacity:.4}
+.state-box p{font-size:15px;color:var(--g500);margin-bottom:24px}
+
+/* ── Grid ── */
+.pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+
+/* ── Card ── */
+.pf-card{background:#fff;border:1px solid var(--g200);border-radius:16px;padding:20px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:12px}
+.pf-card:hover{border-color:var(--p);box-shadow:0 6px 24px rgba(99,102,241,.12);transform:translateY(-2px)}
+.pf-card-top{display:flex;align-items:flex-start;gap:12px}
+.pf-icon{width:40px;height:40px;border-radius:10px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:var(--p)}
+.pf-meta{flex:1;min-width:0}
+.pf-title{font-size:15px;font-weight:700;color:var(--g900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.pf-sub{font-size:12px;color:var(--g500)}
+.pf-badges{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.badge-type{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--pl);color:var(--p)}
+.badge-track{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-track.a{background:#ECFDF5;color:#065F46}
+.badge-track.b{background:#EFF6FF;color:#1D4ED8}
+.pf-card-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--g100);padding-top:12px}
+.pf-date{font-size:12px;color:var(--g400);display:flex;align-items:center;gap:4px}
+.btn-view{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--p);background:none;border:none;cursor:pointer;padding:0;transition:opacity .15s}
+.btn-view:hover{opacity:.7}
+
+/* ── Viewer Modal ── */
+#viewer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;align-items:stretch;justify-content:center;padding:0}
+#viewer-overlay.open{display:flex}
+#viewer-modal{background:#fff;width:100%;max-width:900px;margin:0 auto;display:flex;flex-direction:column;position:relative;animation:viewerIn .2s ease}
+@keyframes viewerIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.viewer-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--g200);background:#fff;flex-shrink:0;gap:12px}
+.viewer-title{font-size:15px;font-weight:700;color:var(--g900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viewer-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn-download{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
+.btn-download:hover{background:var(--pd)}
+.btn-close-viewer{background:none;border:none;cursor:pointer;font-size:20px;color:var(--g400);padding:4px 8px;border-radius:6px;transition:color .15s;line-height:1}
+.btn-close-viewer:hover{color:var(--g700)}
+#viewer-frame{flex:1;border:none;width:100%}
+
+@media(max-width:600px){
+  .page-wrap{padding:32px 16px 60px}
+  .pf-grid{grid-template-columns:1fr}
+  #viewer-modal{max-width:100%}
+}
+</style>
+</head>
+<body>
+<script>initNavbar({ activePage: 'my-portfolios', addBodyPadding: true });</script>
+
+<div class="page-wrap">
+  <div class="page-top">
+    <div>
+      <h1>내 포트폴리오 현황</h1>
+      <p>최근 생성된 포트폴리오를 확인하고 다운로드하세요</p>
+    </div>
+    <a href="/app" class="btn-new"><i class="fa-solid fa-wand-magic-sparkles"></i>새로 만들기</a>
+  </div>
+
+  <div id="pf-loading" class="state-box">
+    <div class="icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+    <p>불러오는 중...</p>
+  </div>
+
+  <div id="pf-empty" class="state-box" style="display:none">
+    <div class="icon"><i class="fa-regular fa-folder-open"></i></div>
+    <p>아직 생성된 포트폴리오가 없습니다</p>
+    <a href="/app" class="btn-new"><i class="fa-solid fa-wand-magic-sparkles"></i>첫 포트폴리오 만들기</a>
+  </div>
+
+  <div id="pf-grid" class="pf-grid" style="display:none"></div>
+</div>
+
+<!-- Portfolio Viewer Modal -->
+<div id="viewer-overlay">
+  <div id="viewer-modal">
+    <div class="viewer-bar">
+      <span class="viewer-title" id="viewer-title"></span>
+      <div class="viewer-actions">
+        <button class="btn-download" id="btn-download" onclick="downloadPortfolio()">
+          <i class="fa-solid fa-download"></i>HTML 저장
+        </button>
+        <button class="btn-close-viewer" onclick="closeViewer()">×</button>
+      </div>
+    </div>
+    <iframe id="viewer-frame" title="포트폴리오 미리보기"></iframe>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('sb_access_token');
+if (!token) window.location.href = '/?auth_required=1';
+
+const TYPE_ICON = { developer: '💻', planner: '📋', designer: '🎨', marketer: '📣' };
+let _portfolios = [];
+let _currentPf = null;
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/history', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    const list = data.history || [];
+    _portfolios = list;
+    render(list);
+  } catch (e) {
+    document.getElementById('pf-loading').innerHTML =
+      '<div class="icon"><i class="fa-solid fa-circle-exclamation"></i></div><p>불러오기 실패. 새로고침 해주세요.</p>';
+  }
+}
+
+function render(list) {
+  document.getElementById('pf-loading').style.display = 'none';
+  if (!list.length) {
+    document.getElementById('pf-empty').style.display = 'block';
+    return;
+  }
+  const grid = document.getElementById('pf-grid');
+  grid.style.display = 'grid';
+  grid.innerHTML = list.map((pf, i) => {
+    const icon = TYPE_ICON[pf.portfolio_type] || '📄';
+    const trackClass = (pf.track || 'A').toLowerCase();
+    const trackLabel = pf.track === 'B' ? 'Track B · JD 매핑' : 'Track A · 기본';
+    return `
+      <div class="pf-card" onclick="openViewer(${i})">
+        <div class="pf-card-top">
+          <div class="pf-icon">${icon}</div>
+          <div class="pf-meta">
+            <div class="pf-title">${escHtml(pf.job_title || '경험 정제 카드')}</div>
+            <div class="pf-sub">${escHtml(pf.portfolio_type_name || pf.portfolio_type || '')}</div>
+          </div>
+        </div>
+        <div class="pf-badges">
+          <span class="badge-type"><i class="fa-solid fa-briefcase"></i>${escHtml(pf.portfolio_type_name || pf.portfolio_type || '')}</span>
+          <span class="badge-track ${trackClass}"><i class="fa-solid fa-check-circle"></i>${trackLabel}</span>
+        </div>
+        <div class="pf-card-footer">
+          <span class="pf-date"><i class="fa-regular fa-clock"></i>${escHtml(pf.created_at || '')}</span>
+          <button class="btn-view"><i class="fa-solid fa-eye"></i>미리보기</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openViewer(idx) {
+  const pf = _portfolios[idx];
+  if (!pf || !pf.full_html) return;
+  _currentPf = pf;
+  document.getElementById('viewer-title').textContent = pf.job_title || '포트폴리오';
+  const frame = document.getElementById('viewer-frame');
+  frame.srcdoc = pf.full_html;
+  document.getElementById('viewer-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeViewer() {
+  document.getElementById('viewer-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  _currentPf = null;
+}
+
+function downloadPortfolio() {
+  if (!_currentPf) return;
+  const blob = new Blob([_currentPf.full_html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (_currentPf.job_title || 'portfolio').replace(/\s+/g, '_') + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeViewer(); });
+document.getElementById('viewer-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('viewer-overlay')) closeViewer();
+});
+
+loadHistory();
+</script>
+</body>
+</html>

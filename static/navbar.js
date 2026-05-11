@@ -98,6 +98,7 @@
               '</div>' +
               '<div class="pd-menu">' +
                 '<a href="/app" class="pd-item"><i class="fa-solid fa-wand-magic-sparkles"></i>포트폴리오 만들기</a>' +
+                '<a href="/my-portfolios" class="pd-item"><i class="fa-solid fa-folder-open"></i>내 포트폴리오 현황</a>' +
                 '<div class="pd-divider"></div>' +
                 '<button class="pd-item logout" onclick="authLogout()"><i class="fa-solid fa-right-from-bracket"></i>로그아웃</button>' +
               '</div>' +
