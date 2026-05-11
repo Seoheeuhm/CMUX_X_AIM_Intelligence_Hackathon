@@ -279,12 +279,23 @@ COMMON_RULES = """
 - 채용공고 키워드 강조(Track B만): <strong class="kw">키워드</strong>
 - 마크다운·코드블록 금지, 순수 HTML만 반환
 - <div class="portfolio-content"> 래퍼 없이 섹션만 반환
+
+[이력서 디자인 원칙]
+- 배경: 흰색, 텍스트: 주로 #1a1a1a(거의 검정)
+- 중요 키워드: <strong class="kw"> 또는 <span class="highlight-box">태그</span> 사용
+- 수치·성과: 반드시 <strong class="kw">로 강조 (예: <strong class="kw">MAU 3만</strong>)
+- 섹션 제목: 대문자 영문 병기 권장 (예: 주요 프로젝트 PROJECTS)
+- 본문: 14px, 줄간격 넉넉하게, 읽기 쉽게
+- 태그 칩(.tech-tag): 회색 배경, 검정 텍스트로 눈에 띄게
+- 절대 다크 배경(#1e1e1e, #2D2D2D 등) 사용 금지
 """
 
 
 def build_prompt_track_a(mat_json: str, interview_txt: str, tmpl: dict) -> str:
-    return f"""당신은 포트폴리오 작성 전문가입니다.
-아래 지원자 정보를 바탕으로 포트폴리오 HTML을 생성하세요.
+    return f"""당신은 이력서·포트폴리오 작성 전문가입니다.
+아래 지원자 정보를 바탕으로 깔끔한 흰색 배경 이력서 HTML을 생성하세요.
+중요한 수치·키워드는 <strong class='kw'>로 강조하고, 기술명은 <span class='tech-tag'>로 표시하세요.
+절대 다크 배경을 사용하지 마세요.
 
 [지원자 정보]
 파싱된 포트폴리오: {mat_json}
@@ -298,10 +309,11 @@ def build_prompt_track_a(mat_json: str, interview_txt: str, tmpl: dict) -> str:
 아래 3개 섹션만 생성하세요 (순서 유지):
 
 SECTION 1 — 자기소개 & 핵심 역량
-  <section class="section s1">: 강점 3가지를 자연스러운 소개 문장으로.
+  <section class="section s1">: 강점 3가지를 자연스러운 소개 문장으로. 수치는 <strong class="kw">로 강조.
 
-SECTION 2 — 주요 프로젝트
+SECTION 2 — 주요 프로젝트 PROJECTS
   <section class="section s2">: 프로젝트별 카드. 각 카드에 역할·기술스택·성과 포함.
+  성과 수치는 반드시 <strong class="kw">로 강조. 기술명은 <span class="tech-tag">로 표시.
 
 SECTION 3 — {tmpl['s3_title']}
   <section class="section s3">: 보유 기술/역량을 카테고리별로. tech-tag 적극 활용.
@@ -310,8 +322,10 @@ SECTION 3 — {tmpl['s3_title']}
 
 def build_prompt_track_b(mat_json: str, interview_txt: str,
                           tmpl: dict, job_title: str, job_posting: str) -> str:
-    return f"""당신은 채용 전문가 겸 포트폴리오 작성 전문가입니다.
-아래 지원자 정보와 채용공고를 바탕으로 맞춤형 포트폴리오 HTML을 생성하세요.
+    return f"""당신은 채용 전문가 겸 이력서·포트폴리오 작성 전문가입니다.
+아래 지원자 정보와 채용공고를 바탕으로 깔끔한 흰색 배경 맞춤형 이력서 HTML을 생성하세요.
+채용공고 핵심 키워드는 <strong class='kw'>로 강조하고, 기술명은 <span class='tech-tag'>로 표시하세요.
+절대 다크 배경을 사용하지 마세요.
 
 [지원자 정보]
 파싱된 포트폴리오: {mat_json}
@@ -332,9 +346,9 @@ SECTION 1 — 지원자 프로필 & 직무 적합성
   <section class="section s1">: 채용공고 요구사항에 맞춘 자기소개 + 핵심 강점 3가지.
   채용공고 키워드를 <strong class="kw">로 강조.
 
-SECTION 2 — 주요 프로젝트
+SECTION 2 — 주요 프로젝트 PROJECTS
   <section class="section s2">: 프로젝트별 카드. 채용공고 관련 내용 우선 배치.
-  채용공고 키워드를 <strong class="kw">로 강조.
+  성과 수치는 <strong class="kw">로 강조. 채용공고 키워드를 <strong class="kw">로 강조.
 
 SECTION 3 — {tmpl['s3_title']}
   <section class="section s3">: 보유 기술/역량 카테고리별 정리. tech-tag 활용.
@@ -364,6 +378,7 @@ SECTION 6 — 회고 & 성장 스토리
 SECTION 7 — 핵심 성과 지표 요약
   <section class="section s7">: <table> 태그로 5~8행 구성.
   컬럼: 항목 | 수치 | 직무 연계 포인트.
+  테이블 헤더 배경 #1a1a1a, 흰색 텍스트, 셀 텍스트 #1a1a1a.
 
 SECTION 8 — 미보유 역량 & 학습 계획
   <section class="section s8">: 채용공고 기준 미보유 역량 2~3개와 구체적 보완 방법.
@@ -375,7 +390,9 @@ SECTION 4 — 회고 & 성장 스토리
   1) 핵심 인사이트  2) 파악된 업무 스타일  3) 다음 프로젝트 적용 계획.
 """
 
-    return f"""아래 내용을 바탕으로 추가 섹션만 HTML로 생성하세요.
+    return f"""흰색 배경 이력서 스타일 유지. 다크 배경 사용 금지.
+수치·성과는 <strong class='kw'>로 강조.
+아래 내용을 바탕으로 추가 섹션만 HTML로 생성하세요.
 순수 HTML만 반환, 코드블록 금지.
 
 [지원자 정보]
@@ -471,7 +488,7 @@ def root():
 
 @app.get("/app")
 def app_page():
-    return FileResponse("static/main.html", headers=_NO_CACHE)
+    return FileResponse("static/index.html", headers=_NO_CACHE)
 
 @app.get("/generator")
 def generator_page():
@@ -819,17 +836,18 @@ def generate(req: GenerateReq, user: dict = Depends(get_current_user)):
 
 # ── PPT Design System ─────────────────────────────────────────────────────────
 
-_BG_DARK   = "2D3436"
-_BG_LIGHT  = "FFF5F5"
-_CORAL     = "FF6B6B"
-_TEXT_DARK = "2D3436"
-_TEXT_GRAY = "636E72"
+_PPT_BG       = "1e1e1e"
+_PPT_BG_CARD  = "2a2a2a"
+_PPT_WHITE    = "FFFFFF"
+_PPT_GRAY_MED = "999999"
+_PPT_GRAY_DIM = "888888"
+_PPT_GRAY_DARK= "666666"
 
 _PPT_ACCENTS = {
-    "developer": "6C5CE7",
-    "planner":   "0984E3",
-    "designer":  "E17055",
-    "marketer":  "00B894",
+    "developer": "6366F1",
+    "planner":   "6366F1",
+    "designer":  "6366F1",
+    "marketer":  "6366F1",
 }
 
 
@@ -846,7 +864,7 @@ def _ppt_rect(slide, x: float, y: float, w: float, h: float, fill: str):
 
 
 def _ppt_txt(slide, text: str, x: float, y: float, w: float, h: float,
-             size: float, bold: bool = False, color: str = "2D3436"):
+             size: float, bold: bool = False, color: str = "FFFFFF"):
     tb = slide.shapes.add_textbox(Cm(x), Cm(y), Cm(w), Cm(h))
     tf = tb.text_frame
     tf.word_wrap = True
@@ -861,83 +879,78 @@ def _ppt_txt(slide, text: str, x: float, y: float, w: float, h: float,
 
 def _ppt_dark_slide(slide, sd: dict, layout: str, accent: str):
     W, H = 33.87, 19.05
-    _ppt_rect(slide, 0, 0, W, H, _BG_DARK)
-    bar = _CORAL if layout in ("title", "closing") else accent
-    _ppt_rect(slide, 0.6, 2.5, 0.5, 6.0, bar)
-    _ppt_txt(slide, sd.get("title", ""), 1.8, 3.0, W - 3.0, 3.5, 34, bold=True, color="FFFFFF")
+    _ppt_rect(slide, 0, 0, W, H, _PPT_BG)
+    _ppt_rect(slide, 0.6, 2.5, 0.4, 6.0, _PPT_WHITE)
+    _ppt_txt(slide, sd.get("title", ""), 1.8, 3.0, W - 3.0, 3.5, 34, bold=True, color=_PPT_WHITE)
     sub = sd.get("subtitle") or sd.get("content") or ""
     if sub:
-        _ppt_txt(slide, sub, 1.8, 7.0, W - 3.0, 2.0, 16, color="B2BEC3")
+        _ppt_txt(slide, sub, 1.8, 7.0, W - 3.0, 2.0, 16, color=_PPT_GRAY_MED)
 
 
 def _ppt_project_slide(slide, sd: dict, accent: str):
     W, H = 33.87, 19.05
-    _ppt_rect(slide, 0, 0, W, H, _BG_LIGHT)
-    _ppt_rect(slide, 0, 0, W, 3.0, "FFFFFF")
-    _ppt_rect(slide, 0, 0, 0.5, 3.0, _CORAL)
-    _ppt_txt(slide, sd.get("title", ""), 1.2, 0.5, W - 2.0, 2.2, 24, bold=True)
-
-    left_x, left_w = 1.0, 15.0
-    y = 3.8
+    _ppt_rect(slide, 0, 0, W, H, _PPT_BG)
+    _ppt_rect(slide, 0, 0, W * 0.4, H, _PPT_BG_CARD)
+    _ppt_txt(slide, sd.get("title", ""), 1.0, 1.2, W * 0.4 - 2.0, 2.5, 22, bold=True, color=_PPT_WHITE)
+    date_str = sd.get("date", "")
+    if date_str:
+        _ppt_txt(slide, date_str, 1.0, 3.9, W * 0.4 - 2.0, 0.8, 10, color=_PPT_GRAY_DIM)
     role = sd.get("role", "")
     if role:
-        _ppt_rect(slide, left_x, y, left_w, 1.0, "EBF3FB")
-        _ppt_txt(slide, f"역할: {role}", left_x + 0.3, y + 0.15, left_w - 0.6, 0.8, 12)
-        y += 1.3
+        _ppt_txt(slide, role, 1.0, 4.8, W * 0.4 - 2.0, 0.8, 11, color=_PPT_GRAY_MED)
+
+    right_x = W * 0.4 + 0.8
+    right_w = W - right_x - 1.0
+    ry = 1.2
     desc = sd.get("description", "")
     if desc:
-        _ppt_txt(slide, desc[:220], left_x, y, left_w, H - y - 1.5, 12, color=_TEXT_GRAY)
-
-    right_x = 17.5
-    right_w = W - right_x - 1.0
-    ry = 3.8
+        _ppt_txt(slide, desc[:220], right_x, ry, right_w, 3.5, 11, color=_PPT_GRAY_MED)
+        ry += 3.8
     tech = sd.get("tech_stack", [])
     ach  = sd.get("achievements", [])
     if tech:
-        _ppt_txt(slide, "기술 스택", right_x, ry, right_w, 0.8, 13, bold=True, color=accent)
-        ry += 0.9
-        _ppt_txt(slide, "  •  ".join(str(t) for t in tech[:8]), right_x, ry, right_w, 1.8, 11)
-        ry += 2.1
+        _ppt_txt(slide, "STACK", right_x, ry, right_w, 0.7, 9, bold=True, color=_PPT_GRAY_DARK)
+        ry += 0.8
+        _ppt_txt(slide, "  ·  ".join(str(t) for t in tech[:8]), right_x, ry, right_w, 1.4, 10, color=_PPT_GRAY_MED)
+        ry += 1.8
     if ach:
-        _ppt_txt(slide, "주요 성과", right_x, ry, right_w, 0.8, 13, bold=True, color=accent)
-        ry += 0.9
+        _ppt_txt(slide, "ACHIEVEMENTS", right_x, ry, right_w, 0.7, 9, bold=True, color=_PPT_GRAY_DARK)
+        ry += 0.8
         for a in ach[:4]:
-            if ry > H - 2.0:
+            if ry > H - 1.5:
                 break
-            _ppt_txt(slide, f"• {str(a)[:70]}", right_x, ry, right_w, 0.9, 11)
-            ry += 0.9
+            _ppt_txt(slide, f"— {str(a)[:80]}", right_x, ry, right_w, 0.9, 10, color=_PPT_WHITE)
+            ry += 1.0
 
 
 def _ppt_content_slide(slide, sd: dict, accent: str):
     W, H = 33.87, 19.05
-    _ppt_rect(slide, 0, 0, W, H, _BG_LIGHT)
-    _ppt_rect(slide, 0, 0, W, 3.0, "FFFFFF")
-    _ppt_rect(slide, 0, 0, 0.5, 3.0, _CORAL)
-    _ppt_txt(slide, sd.get("title", ""), 1.2, 0.6, W - 2.0, 2.0, 26, bold=True)
+    _ppt_rect(slide, 0, 0, W, H, _PPT_BG)
+    _ppt_txt(slide, sd.get("title", "").upper(), 1.2, 0.8, W - 2.0, 1.4, 13, bold=True, color=_PPT_WHITE)
+    _ppt_rect(slide, 1.2, 2.4, W - 2.4, 0.05, _PPT_GRAY_DARK)
 
     cards   = sd.get("cards", [])
     bullets = sd.get("bullets", [])
 
     if cards:
         n = min(len(cards), 3)
-        card_w = (W - 2.0 - (n - 1) * 0.4) / n
+        card_w = (W - 2.0 - (n - 1) * 0.5) / n
         for i, card in enumerate(cards[:3]):
-            cx = 1.0 + i * (card_w + 0.4)
-            cy, ch = 3.6, H - 4.8
-            _ppt_rect(slide, cx, cy, card_w, ch, "FFFFFF")
-            _ppt_rect(slide, cx, cy, card_w, 0.4, accent)
+            cx = 1.0 + i * (card_w + 0.5)
+            cy, ch = 3.0, H - 4.2
+            _ppt_rect(slide, cx, cy, card_w, ch, _PPT_BG_CARD)
             c = card if isinstance(card, dict) else {"title": str(card), "body": ""}
-            _ppt_txt(slide, c.get("title", ""), cx + 0.3, cy + 0.6, card_w - 0.6, 1.0, 14, bold=True)
+            _ppt_txt(slide, c.get("title", ""), cx + 0.4, cy + 0.5, card_w - 0.8, 1.0, 13, bold=True, color=_PPT_WHITE)
             if c.get("body"):
-                _ppt_txt(slide, c["body"], cx + 0.3, cy + 1.8, card_w - 0.6, ch - 2.2, 12, color=_TEXT_GRAY)
+                _ppt_txt(slide, c["body"], cx + 0.4, cy + 1.7, card_w - 0.8, ch - 2.0, 11, color=_PPT_GRAY_MED)
     elif bullets:
-        by = 3.8
-        for b in bullets[:6]:
+        by = 2.8
+        for b in bullets[:7]:
             if by > H - 1.5:
                 break
-            _ppt_rect(slide, 1.0, by + 0.3, 0.3, 0.3, _CORAL)
-            _ppt_txt(slide, str(b)[:110], 1.8, by, W - 3.5, 1.0, 13)
-            by += 1.3
+            _ppt_rect(slide, 1.2, by + 0.35, 0.25, 0.25, _PPT_WHITE)
+            _ppt_txt(slide, str(b)[:110], 1.8, by, W - 3.5, 1.0, 12, color=_PPT_GRAY_MED)
+            by += 1.25
 
 
 def _skills_cards(skills: list) -> list:
@@ -1071,7 +1084,7 @@ def generate_ppt_download(req: PptDownloadReq):
     if not PPTX_OK:
         raise HTTPException(400, "python-pptx가 설치되지 않았습니다.")
 
-    accent = _PPT_ACCENTS.get(req.portfolio_type, _CORAL)
+    accent = _PPT_ACCENTS.get(req.portfolio_type, "6366F1")
     prs = Presentation()
     prs.slide_width  = Cm(33.87)
     prs.slide_height = Cm(19.05)
