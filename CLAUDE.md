@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # 의존성 설치
 pip install -r requirements.txt
+pip install python-pptx
 
 # 개발 서버 실행 (hot-reload)
 uvicorn main:app --reload --port 8000
