@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   avatar_url     TEXT,
   plan           TEXT        NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
   gen_count      INTEGER     NOT NULL DEFAULT 0,
-  gen_limit      INTEGER     NOT NULL DEFAULT 3,
+  gen_limit      INTEGER     NOT NULL DEFAULT 10,
   gen_reset_at   TIMESTAMPTZ,
   pro_expires_at TIMESTAMPTZ,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),

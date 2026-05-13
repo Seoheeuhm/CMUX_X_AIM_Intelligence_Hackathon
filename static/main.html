@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>포트폴로그 | Portfo-Log</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="/static/navbar.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -13,13 +16,7 @@
   --g400:#9CA3AF;--g500:#6B7280;--g700:#374151;--g900:#111827;
   --header-h:63px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh}
-
-/* ── Header ── */
-header{background:#fff;border-bottom:1px solid var(--g200);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
-.logo{width:34px;height:34px;background:var(--p);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0}
-.hd h1{font-size:17px;font-weight:700}
-.hd p{font-size:12px;color:var(--g500)}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh}
 
 /* ── History Section ── */
 #history-section{background:#fff;border-bottom:1px solid var(--g200);padding:12px 18px}
@@ -285,7 +282,7 @@ textarea{resize:vertical;min-height:90px}
 .jd-autofill-banner{background:var(--pl);border:1px solid #A5B4FC;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;font-weight:600;color:var(--pd)}
 
 @media print{
-  header,#history-section,#main-tab-bar,.scard,.rh{display:none!important}
+  nav.nb,#history-section,#main-tab-bar,.scard,.rh{display:none!important}
   .pw{margin:0;padding:0;max-width:100%}
   .pbox{border:none;border-radius:0}
   .copy-card-btn{display:none}
@@ -302,14 +299,7 @@ textarea{resize:vertical;min-height:90px}
 </head>
 <body>
 
-<!-- ── Header ── -->
-<header>
-  <div class="logo">P</div>
-  <div class="hd">
-    <h1>포트폴로그 | Portfo-Log</h1>
-    <p>채용공고 탐색 → 경험 정제 → 맞춤 포트폴리오 완성</p>
-  </div>
-</header>
+<script>initNavbar({ activePage: 'app', addBodyPadding: true });</script>
 
 <!-- ── Recent Portfolio History ── -->
 <div id="history-section">

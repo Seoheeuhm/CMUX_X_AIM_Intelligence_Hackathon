@@ -502,6 +502,10 @@ def docs_page():
 def qna_page():
     return FileResponse("static/qna.html", headers=_NO_CACHE)
 
+@app.get("/my-portfolios")
+def my_portfolios_page():
+    return FileResponse("static/portfolio-history.html", headers=_NO_CACHE)
+
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 

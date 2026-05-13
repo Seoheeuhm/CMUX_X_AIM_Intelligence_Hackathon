@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portfolog — 맞춤형 포트폴리오 제작 AI</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<script src="/static/navbar.js"></script>
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
       integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
@@ -19,64 +20,6 @@
 }
 html{scroll-behavior:smooth}
 body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:var(--g900);line-height:1.6;overflow-x:hidden}
-
-/* ── LOGIN MODAL ── */
-#login-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:16px}
-#login-overlay.open{display:flex}
-#login-modal{background:#fff;border-radius:16px;padding:40px 36px 32px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;animation:modalIn .25s ease}
-@keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
-#login-close{position:absolute;top:14px;right:16px;background:none;border:none;cursor:pointer;font-size:20px;color:var(--g400);line-height:1;padding:4px 8px;border-radius:6px;transition:color .15s}
-#login-close:hover{color:var(--g700)}
-.login-logo{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
-.login-logo img{height:36px;width:auto}
-.login-logo span{font-size:18px;font-weight:800;color:var(--g900)}
-#login-modal h2{font-size:22px;font-weight:700;color:var(--g900);margin-bottom:6px}
-.login-sub{font-size:13px;color:var(--g500);margin-bottom:28px}
-#modal-google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;border:1.5px solid var(--g200);border-radius:10px;background:#fff;font-size:15px;font-weight:600;color:var(--g900);text-decoration:none;cursor:pointer;transition:all .18s}
-#modal-google-btn:hover{border-color:var(--g400);background:var(--g50);box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.login-footer{font-size:12px;color:var(--g400);margin-top:20px}
-
-/* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--g200);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.logo-img{height:40px;width:auto;flex-shrink:0}
-.logo-name{font-size:17px;font-weight:800;color:var(--g900)}
-.nav-links{list-style:none;display:flex;gap:28px;align-items:center}
-.nav-links a{font-size:14px;font-weight:600;color:var(--g500);text-decoration:none;transition:color .2s;white-space:nowrap}
-.nav-links a:hover{color:var(--g900)}
-.nav-right{display:flex;align-items:center;gap:12px}
-.nav-cta{padding:8px 18px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .2s}
-.nav-cta:hover{background:var(--pd)}
-.nav-hamburger{display:none;background:none;border:none;cursor:pointer;font-size:18px;color:var(--g700);padding:4px}
-.nav-mobile{display:none;position:fixed;top:63px;left:0;right:0;z-index:99;background:#fff;border-bottom:1px solid var(--g200);padding:16px 24px;flex-direction:column;gap:0}
-.nav-mobile a{display:block;padding:12px 0;font-size:15px;font-weight:600;color:var(--g700);text-decoration:none;border-bottom:1px solid var(--g100)}
-.nav-mobile.open{display:flex}
-.nav-mobile-cta{margin-top:12px;padding:12px 20px!important;background:var(--p);color:#fff!important;border-radius:8px;text-align:center;border:none!important}
-@media(max-width:768px){.nav-links{display:none}.nav-hamburger{display:block}}
-
-/* ── PROFILE DROPDOWN ── */
-.nav-profile{position:relative}
-.profile-avatar-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--g200);background:none;cursor:pointer;padding:0;overflow:hidden;transition:border-color .18s,box-shadow .18s;flex-shrink:0;display:none}
-.profile-avatar-btn:hover{border-color:var(--p);box-shadow:0 0 0 3px var(--pl)}
-.profile-avatar-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.profile-avatar-initials{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px}
-.profile-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:240px;background:#fff;border:1px solid var(--g200);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.13),0 2px 8px rgba(0,0,0,.06);z-index:200;opacity:0;transform:translateY(-6px) scale(.97);pointer-events:none;transition:opacity .18s ease,transform .18s ease;transform-origin:top right}
-.profile-dropdown.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
-.pd-header{display:flex;align-items:center;gap:12px;padding:16px 16px 14px;border-bottom:1px solid var(--g100)}
-.pd-avatar{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--g200)}
-.pd-avatar img{width:100%;height:100%;object-fit:cover}
-.pd-avatar-init{width:100%;height:100%;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff}
-.pd-info{min-width:0}
-.pd-name{font-size:14px;font-weight:700;color:var(--g900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pd-email{font-size:12px;color:var(--g400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.pd-menu{padding:6px 0}
-.pd-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;font-weight:500;color:var(--g700);text-decoration:none;cursor:pointer;background:none;border:none;width:100%;text-align:left;transition:background .13s,color .13s}
-.pd-item:hover{background:var(--g50);color:var(--g900)}
-.pd-item i{width:16px;text-align:center;color:var(--g400);font-size:13px;flex-shrink:0}
-.pd-divider{height:1px;background:var(--g100);margin:4px 0}
-.pd-item.logout{color:var(--err)}
-.pd-item.logout i{color:var(--err)}
-.pd-item.logout:hover{background:#FEF2F2}
 
 /* ── HERO ── */
 .hero{padding:140px 24px 100px;text-align:center;background:linear-gradient(180deg,#F5F5FF 0%,#fff 100%);position:relative;overflow:hidden}
@@ -236,51 +179,6 @@ footer p{font-size:12px;line-height:1.8}
 <body>
 
 <!-- NAV -->
-<nav>
-  <a href="/" class="nav-logo">
-    <img src="/static/logo.png" class="logo-img" alt="Portfolog">
-    <span class="logo-name">Portfolog</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="#features">기능</a></li>
-    <li><a href="#pricing">가격</a></li>
-    <li><a href="/docs">문서</a></li>
-    <li><a href="/qna">문의</a></li>
-  </ul>
-  <div class="nav-right">
-    <a id="nav-login-btn" href="#" onclick="openLoginModal();return false;" class="nav-cta">Google로 시작하기 →</a>
-    <div class="nav-profile">
-      <button class="profile-avatar-btn" id="profileAvatarBtn" onclick="toggleProfileDropdown()" aria-label="프로필">
-        <div class="profile-avatar-initials" id="profileAvatarInner"></div>
-      </button>
-      <div class="profile-dropdown" id="profileDropdown">
-        <div class="pd-header">
-          <div class="pd-avatar" id="pdAvatar"><div class="pd-avatar-init" id="pdAvatarInit"></div></div>
-          <div class="pd-info">
-            <div class="pd-name" id="pdName"></div>
-            <div class="pd-email" id="pdEmail"></div>
-          </div>
-        </div>
-        <div class="pd-menu">
-          <a href="/app" class="pd-item"><i class="fa-solid fa-wand-magic-sparkles"></i>포트폴리오 만들기</a>
-          <div class="pd-divider"></div>
-          <button class="pd-item logout" onclick="authLogout()"><i class="fa-solid fa-right-from-bracket"></i>로그아웃</button>
-        </div>
-      </div>
-    </div>
-    <button class="nav-hamburger" id="navToggle" aria-label="메뉴">
-      <i class="fa-solid fa-bars"></i>
-    </button>
-  </div>
-</nav>
-<div class="nav-mobile" id="navMobile">
-  <a href="#features">기능</a>
-  <a href="#pricing">가격</a>
-  <a href="/docs">문서</a>
-  <a href="/qna">문의</a>
-  <a href="#" onclick="openLoginModal();return false;" class="nav-mobile-cta">Google로 시작하기 →</a>
-</div>
-
 <!-- HERO -->
 <section class="hero">
   <div class="hero-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 기반 포트폴리오 자동화</div>
@@ -575,37 +473,11 @@ footer p{font-size:12px;line-height:1.8}
   <p class="foot-copy">© 2025 Portfolog. All rights reserved.</p>
 </footer>
 
-<!-- LOGIN MODAL -->
-<div id="login-overlay" onclick="handleOverlayClick(event)">
-  <div id="login-modal">
-    <button id="login-close" onclick="closeLoginModal()" aria-label="닫기">×</button>
-    <div class="login-logo">
-      <img src="/static/logo.png" alt="Portfolog">
-      <span>Portfolog</span>
-    </div>
-    <h2>시작하기</h2>
-    <p class="login-sub">Google 계정으로 1초만에 로그인하세요</p>
-    <a href="/auth/login" id="modal-google-btn">
-      <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-      </svg>
-      Google로 계속하기
-    </a>
-    <p class="login-footer">계정이 없으면 자동으로 가입됩니다</p>
-  </div>
-</div>
+<script>
+initNavbar({ activePage: 'home' });
+</script>
 
 <script>
-const toggle = document.getElementById('navToggle');
-const mobile = document.getElementById('navMobile');
-toggle.addEventListener('click', () => mobile.classList.toggle('open'));
-mobile.querySelectorAll('a').forEach(a =>
-  a.addEventListener('click', () => mobile.classList.remove('open'))
-);
-
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) {
@@ -616,103 +488,6 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-</script>
-<script>
-  function authLogout() {
-    localStorage.removeItem('sb_access_token');
-    localStorage.removeItem('sb_refresh_token');
-    window.location.href = '/';
-  }
-
-  function parseJWT(token) {
-    try { return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }
-    catch { return {}; }
-  }
-
-  function setAvatar(containerEl, initEl, avatarUrl, initials) {
-    if (avatarUrl) {
-      const img = document.createElement('img');
-      img.src = avatarUrl;
-      img.alt = '';
-      img.onerror = () => { img.remove(); initEl.textContent = initials; };
-      containerEl.prepend(img);
-      initEl.style.display = 'none';
-    } else {
-      initEl.textContent = initials;
-    }
-  }
-
-  function updateNav() {
-    const token = localStorage.getItem('sb_access_token');
-    const loginBtn = document.getElementById('nav-login-btn');
-    const avatarBtn = document.getElementById('profileAvatarBtn');
-    if (!token) {
-      if (loginBtn) loginBtn.style.display = 'inline-flex';
-      if (avatarBtn) avatarBtn.style.display = 'none';
-      return;
-    }
-    if (loginBtn) loginBtn.style.display = 'none';
-    if (avatarBtn) avatarBtn.style.display = 'flex';
-
-    const heroCta = document.getElementById('hero-cta-btn');
-    if (heroCta) {
-      heroCta.textContent = '포트폴리오 만들기 →';
-      heroCta.href = '/app';
-      heroCta.removeAttribute('onclick');
-    }
-
-    const ctaBtn = document.getElementById('cta-bottom-btn');
-    if (ctaBtn) {
-      ctaBtn.textContent = '포트폴리오 만들기 →';
-      ctaBtn.href = '/app';
-      ctaBtn.removeAttribute('onclick');
-    }
-
-    const payload = parseJWT(token);
-    const meta = payload.user_metadata || {};
-    const email = payload.email || meta.email || '';
-    const fullName = meta.full_name || meta.name || email.split('@')[0] || '?';
-    const avatarUrl = meta.avatar_url || meta.picture || '';
-    const initials = fullName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() || '?';
-
-    // nav mini avatar
-    setAvatar(document.getElementById('profileAvatarInner').parentElement,
-              document.getElementById('profileAvatarInner'), avatarUrl, initials);
-
-    // dropdown header
-    document.getElementById('pdName').textContent = fullName;
-    document.getElementById('pdEmail').textContent = email;
-    setAvatar(document.getElementById('pdAvatar'),
-              document.getElementById('pdAvatarInit'), avatarUrl, initials);
-  }
-
-  function toggleProfileDropdown() {
-    document.getElementById('profileDropdown').classList.toggle('open');
-  }
-
-  document.addEventListener('click', e => {
-    const btn = document.getElementById('profileAvatarBtn');
-    const dd = document.getElementById('profileDropdown');
-    if (dd && !dd.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
-      dd.classList.remove('open');
-    }
-  });
-  function openLoginModal() {
-    document.getElementById('login-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeLoginModal() {
-    document.getElementById('login-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  function handleOverlayClick(e) {
-    if (e.target === document.getElementById('login-overlay')) closeLoginModal();
-  }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLoginModal(); });
-  document.addEventListener('DOMContentLoaded', () => {
-    updateNav();
-    if (new URLSearchParams(window.location.search).get('auth_required')) openLoginModal();
-  });
 </script>
 </body>
 </html>
