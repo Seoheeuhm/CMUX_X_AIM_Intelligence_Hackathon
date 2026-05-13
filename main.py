@@ -488,7 +488,7 @@ def root():
 
 @app.get("/app")
 def app_page():
-    return FileResponse("static/index.html", headers=_NO_CACHE)
+    return FileResponse("static/main.html", headers=_NO_CACHE)
 
 @app.get("/generator")
 def generator_page():
